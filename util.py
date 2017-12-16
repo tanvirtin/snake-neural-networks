@@ -1,0 +1,2 @@
+WINDOW_SIZE = (500, 500)
+SPEED = 10
