@@ -1,5 +1,7 @@
 from SnakeSegment import SnakeSegment
 import pygame
+import math
+from collision_checker import *
 
 # Snake is a SnakeSegment itself and also contains other SnakeSegments
 class Snake(SnakeSegment):
@@ -13,8 +15,46 @@ class Snake(SnakeSegment):
             # I need to scale the image to correct size
             self.head = pygame.transform.scale(pygame.image.load("./assets/head.png"), (self.head_size, self.head_size))
 
+    def self_collision_check(self):
+        # THERE IS A BUG HERE PLS FIX THIS
+        bodies = self.body
+
+        seg_count = 0
+        for segment in bodies:
+            # we check for collision only if theres more than 2 head
+            if seg_count > 2:
+                if collision(self, segment):
+                    return True
+            seg_count += 1
+        # False is returend if and ONLY if we get out of the loop and have iterated over every single segment and found no collision
+        # this prevents the check from just checking one segment finding no collision and returning
+        return False
+
     def get_body(self):
         return self.body
+
+    def distance_from_food(self, food):
+        x_distance = self.distance_from_food_x()
+        y_distance = self.distance_from_food_y()
+
+        return math.sqrt(x_distance**2 + y_distance**2) - food.get_size()
+
+    def distance_from_food_x(self, food):
+        x_distance = self.coordinates[0] - food.get_coor()[0]
+
+    def distance_from_food_y(self, food):
+        y_distance = self.coordinates[1] - food.get_coor()[1]
+
+    def get_head_coor(self):
+        return self.coordinates
+
+    def get_tail_coor(self):
+        return self.body[-1].coordinates
+
+    def get_mid_coor(self):
+        midpoint = self.body / 2
+        midpoint = int(midpoint)
+        return self.body[midpoint].coordinates
 
     def grow(self):
         # NOTE the x and y value of the SnakeSegment doesn't matter atm as it gets updated when it gets drawn
@@ -69,10 +109,11 @@ class Snake(SnakeSegment):
         else:
             boundary_collision = self.boundary_collision()
 
-    #    pygame.draw.rect(screen, self.color, pygame.Rect(self.coordinates[0], self.coordinates[1], self.dimensions[0], self.dimensions[1]))
-
         screen.blit(self.head, (self.coordinates[0], self.coordinates[1]))
 
         self.update_body(screen, prev_x, prev_y, previous_direction, go_through_boundary)
 
-        return boundary_collision
+        if self.self_collision_check() or boundary_collision:
+            return True
+
+        return False
