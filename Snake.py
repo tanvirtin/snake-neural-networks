@@ -16,14 +16,12 @@ class Snake(SnakeSegment):
             self.head = pygame.transform.scale(pygame.image.load("./assets/head.png"), (self.head_size, self.head_size))
 
     def self_collision_check(self):
-        # THERE IS A BUG HERE PLS FIX THIS
         bodies = self.body
-
         seg_count = 0
         for segment in bodies:
             # we check for collision only if theres more than 2 head
             if seg_count > 2:
-                if collision(self, segment):
+                if snake_collision(self, segment):
                     return True
             seg_count += 1
         # False is returend if and ONLY if we get out of the loop and have iterated over every single segment and found no collision
@@ -33,17 +31,20 @@ class Snake(SnakeSegment):
     def get_body(self):
         return self.body
 
+    def snake_length(self):
+        return 1 + len(self.body)
+
     def distance_from_food(self, food):
-        x_distance = self.distance_from_food_x()
-        y_distance = self.distance_from_food_y()
+        x_distance = self.distance_from_food_x(food)
+        y_distance = self.distance_from_food_y(food)
 
         return math.sqrt(x_distance**2 + y_distance**2) - food.get_size()
 
     def distance_from_food_x(self, food):
-        x_distance = self.coordinates[0] - food.get_coor()[0]
+        return self.coordinates[0] - food.get_coor()[0]
 
     def distance_from_food_y(self, food):
-        y_distance = self.coordinates[1] - food.get_coor()[1]
+        return self.coordinates[1] - food.get_coor()[1]
 
     def get_head_coor(self):
         return self.coordinates

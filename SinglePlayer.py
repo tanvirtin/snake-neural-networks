@@ -12,8 +12,9 @@ class SinglePlayer(Player):
         super().__init__(screen)
         # takes in x, y of the snake and the speed of the snake
         self.snakes_speed = speed
-        self.snake = Snake(50, 50, self.snakes_speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
-        self.go_through_boundary = False
+        self.snake = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.snakes_speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
+        self.go_through_boundary = True
+        self.step = 0
 
     def consumption_check(self):
         if collision(self.snake, self.food_stack[0]):
@@ -31,6 +32,10 @@ class SinglePlayer(Player):
         return pixels
 
     def game_loop(self, key_input = None):
+        self.step += 1
+
+        if self.step % 150 == 0:
+            print("150 steps taken")
         pygame.event.pump()
 
         self.screen.fill(self.background_color)
@@ -52,10 +57,10 @@ class SinglePlayer(Player):
 
             # finally we grow the snake as well by adding a new segment to the snake's body
             self.snake.grow()
-            sys.exit()
+            self.step = 0
 
         pygame.display.flip()
 
-        print("Distance from food: {}".format(self.snake.distance_from_food(self.food_stack[0])))
+        # print("Distance from food: {}".format(self.snake.distance_from_food_x(self.food_stack[0])))
 
         return end

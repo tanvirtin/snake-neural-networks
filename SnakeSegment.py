@@ -69,9 +69,8 @@ class SnakeSegment(GameObj):
         elif self.coordinates[1] > self.boundary_y:
             self.coordinates[1] = 0
 
-
         # x boundary check if we go too right
-        elif self.coordinates[0] > self.boundary_x - self.weird_boundary_offset:
+        elif self.coordinates[0] > self.boundary_x:
             self.coordinates[0] = 0
 
         # x boundary check we go too left

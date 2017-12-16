@@ -7,8 +7,6 @@ from Snake import Snake
 from SinglePlayer import SinglePlayer
 from util import *
 
-random.seed(42)
-
 class SnakeGame(object):
     def __init__(self, ai_mode = False):
         self.screen = pygame.display.set_mode(WINDOW_SIZE, pygame.HWSURFACE)
@@ -47,5 +45,5 @@ if __name__ == "__main__":
         if end:
             # if some sort of collision occurs we pause and sleep for a very short period of time indicating game being over
             time.sleep(0.5)
-            game.sp.snake = Snake(50, 50, SPEED, WINDOW_SIZE[0], WINDOW_SIZE[0])
+            game.sp.snake = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, SPEED, WINDOW_SIZE[0], WINDOW_SIZE[0])
         time.sleep(0.05)
