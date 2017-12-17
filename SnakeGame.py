@@ -4,7 +4,7 @@ from Food import Food
 import time
 import keyboard
 from Snake import Snake
-from SinglePlayer import SinglePlayer
+from AgentPlayer import AgentPlayer
 from util import *
 
 class SnakeGame(object):
@@ -13,10 +13,10 @@ class SnakeGame(object):
         self.snakes_speed = SPEED
 
         if not ai_mode:
-            self.sp = SinglePlayer(self.screen, self.snakes_speed)
+            self.ap = AgentPlayer(self.screen, self.snakes_speed)
 
     def sp_game_loop(self, action = None):
-        return self.sp.game_loop(action)
+        return self.ap.game_loop(action)
 
 if __name__ == "__main__":
     game = SnakeGame()

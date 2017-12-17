@@ -5,16 +5,15 @@ import random
 from util import *
 import cv2
 from collision_checker import *
-import sys
+from NeuralNetwork import NeuralNetwork
 
-class SinglePlayer(Player):
+class AgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
-        # takes in x, y of the snake and the speed of the snake
-        self.snakes_speed = speed
-        self.snake = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.snakes_speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
-        self.go_through_boundary = True
         self.step = 0
+        self.go_through_boundary = True
+        self.snakes = [Snake(WINDOW_SIZE[0]/ 2, WINDOW_SIZE[0]/ 2, speed, WINDOW_SIZE[0], WINDOW_SIZE[0]) for i in range(POPULATION_SIZE)]
+        self.brains = [NeuralNetwork((1, 5, 4)) for i in range(POPULATION_SIZE)]
 
     def consumption_check(self):
         if collision(self.snake, self.food_stack[0]):
@@ -22,20 +21,12 @@ class SinglePlayer(Player):
         else:
             return False
 
-    def get_game_pixels(self):
-        # get the game pixel
-        pixels = pygame.surfarray.array3d(pygame.display.get_surface())
-        # # convert pixel into greyscale image with only 1 channel
-        # cv2 is far more superior then any other library in image manipulation
-        pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY) / 255
-
-        return pixels
-
     def game_loop(self, key_input = None):
         self.step += 1
 
         if self.step % 150 == 0:
             print("150 steps taken")
+
         pygame.event.pump()
 
         self.screen.fill(self.background_color)
