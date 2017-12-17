@@ -53,7 +53,7 @@ class Snake(SnakeSegment):
         return self.body[-1].coordinates
 
     def get_mid_coor(self):
-        midpoint = self.body / 2
+        midpoint = len(self.body) / 2
         midpoint = int(midpoint)
         return self.body[midpoint].coordinates
 

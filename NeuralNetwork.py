@@ -2,6 +2,7 @@ from tqdm import tqdm
 import numpy as np
 import math
 import scipy.special
+import random
 
 # This neural network is specially designed for genetic algorithm
 class NeuralNetwork:
@@ -24,8 +25,9 @@ class NeuralNetwork:
 				# as our algorithm adds up the change in weight
 				hidden_layer.append(np.random.uniform(-1, 1, dimensions[i - 1]))
 
-			# add the bias neuron
-			self.biases.append(np.random.uniform(-1, 1, dimensions[i - 1]))
+			# add the bias weights, which is just 1 weight per neuron in the current layer
+			# as the bias neuron in the previous neuron is expected to have an output of 1
+			self.biases.append([random.uniform(-1, 1) for i in range(dimensions[i])])
 
 			# make the hiddenLayer into a np array
 			hiddenLayer = np.array(hidden_layer)
@@ -81,10 +83,14 @@ class NeuralNetwork:
 			# if we are in the first layer we are dealing with the inputs provided
 			# to the neural network
 			if i == 0:
-				output = scipy.special.expit(np.dot(self.layers[i], inputs))
+				dot_product = np.dot(self.layers[i], inputs)
+				#dot_product += self.biases[i]
+				output = scipy.special.expit(dot_product)
 			# else we are dealing with the output of the hidden layers
 			else:
-				output = scipy.special.expit(np.dot(self.layers[i], outputs[i - 1]))
+				dot_product = np.dot(self.layers[i], outputs[i - 1])
+				#dot_product += self.biases[i]
+				output = scipy.special.expit(dot_product)
 
 			output = np.array(output)
 			# we finally append the hiddenOutput to the layers of hiddenOutputs
@@ -97,18 +103,12 @@ class NeuralNetwork:
 		# convert inputs list to 2d array
 		inputs = np.transpose(np.array([np.array(inputs)]))
 		# get the last layer of the output
+		#print(self.feed_forward(inputs)[-1])
 		return self.feed_forward(inputs)[-1]
 
-
 def main():
-	nn = NeuralNetwork([2, 2, 1])
-
-	print(nn.retrieve_weights_per_neuron())
-
-	nn.replace_neuron(3, 4)
-
-	print(nn.retrieve_weights_per_neuron())
-
+	nn = NeuralNetwork([8, 20, 4])
+	nn.get_movement([0, 1, 2, 3, 4, 5, 6, 7])
 
 if __name__ == "__main__":
 	main()
