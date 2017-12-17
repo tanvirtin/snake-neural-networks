@@ -16,7 +16,7 @@ class AgentPlayer(Player):
         # needs to be saved as we will create a new population using the same speed
         self.speed = speed
         self.steps = 0
-        self.go_through_boundary = True
+        self.go_through_boundary = False
         self.agents = [Agent(self.speed) for i in range(POPULATION_SIZE)]
         for agent in self.agents:
             for j in range(2):
@@ -90,6 +90,11 @@ class AgentPlayer(Player):
                 agent.dead = True
                 self.agents.remove(agent)
                 print("An agent has died!")
+                if len(self.agents) == 0:
+                    self.create_new_population()
+                    self.steps = 0
+                    self.generation_num += 1
+                    return
 
             # check here if the snake ate the food
             if self.consumption_check(agent.body):
@@ -97,6 +102,7 @@ class AgentPlayer(Player):
                 agent.body.grow()
                 # agent gets a point if he can eat the food
                 agent.score += 1
+                print("A snake ate a food!")
             i += 1
 
         if self.steps == 500:

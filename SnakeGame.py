@@ -17,10 +17,3 @@ class SnakeGame(object):
 
     def ap_game_loop(self):
         return self.ap.game_loop()
-
-if __name__ == "__main__":
-    game = SnakeGame()
-
-    while not keyboard.is_pressed("q"):
-        game.ap_game_loop()
-        time.sleep(0.05)
