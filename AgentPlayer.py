@@ -8,6 +8,7 @@ from collision_checker import *
 from NeuralNetwork import NeuralNetwork
 import numpy as np
 from Agent import Agent
+from pygame.locals import *
 
 class AgentPlayer(Player):
     def __init__(self, screen, speed):
@@ -20,6 +21,7 @@ class AgentPlayer(Player):
         for agent in self.agents:
             for j in range(2):
                 agent.body.grow()
+        self.generation_num = 1
 
     def consumption_check(self, snake):
         if collision(snake, self.food_stack[0]):
@@ -33,6 +35,21 @@ class AgentPlayer(Player):
             for j in range(2):
                 agent.body.grow()
 
+    def display_info(self):
+        pygame.font.init()
+
+        default_font = pygame.font.get_default_font()
+        font_renderer = pygame.font.Font(default_font, 20)
+
+        # To create a surface containing `Some Text`
+        label = font_renderer.render("Generation - {}".format(self.generation_num), 1, (0,0,0)) # RGB Color
+        self.screen.blit(label, (0,0))
+
+        # draw the food
+        for food in self.food_stack:
+            food.draw(self.screen)
+
+
     def game_loop(self, key_input = None):
         self.steps += 1
 
@@ -40,18 +57,11 @@ class AgentPlayer(Player):
 
         self.screen.fill(self.background_color)
 
-        if self.steps == 100:
-            # 100 frames has passed now we reboot game
-            pass
-
-        # draw the food
-        for food in self.food_stack:
-            food.draw(self.screen)
+        self.display_info()
 
         # draw the snake
         i = 0
         for agent in self.agents:
-
             head_x = agent.body.get_head_coor()[0]
             head_y = agent.body.get_head_coor()[1]
             mid_x = agent.body.get_mid_coor()[0]
@@ -85,12 +95,13 @@ class AgentPlayer(Player):
                 self.spawn_food()
                 agent.body.grow()
                 # agent gets a point if he can eat the food
-                agent.points += 1
-
+                agent.score += 1
             i += 1
 
-        if self.steps == 100:
+        if self.steps == 500:
             self.create_new_population()
-
+            self.steps = 0
+            self.generation_num += 1
+            print("On generation {}".format(self.generation_num))
 
         pygame.display.flip()
