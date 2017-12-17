@@ -32,10 +32,6 @@ class NeuralNetwork:
 
 			self.layers.append(hidden_layer)
 
-		self.flattened_neurons = self.flatten
-
-	def flatten(self):
-		return [self.layers[i][j] for i in range(len(self.layers)) for j in range(len(self.layers[i]))]
 
 	# need to return biases so that it can get swapped for crossover where two best parents breed to get a new child
 	def retrieve_bias_weights_per_neuron(self):
@@ -43,29 +39,40 @@ class NeuralNetwork:
 
 	# returns all the neurons in neural network into a flattend single layered array
 	def retrieve_weights_per_neuron(self):
-		return self.flattened_neurons()
+		return [self.layers[i][j] for i in range(len(self.layers)) for j in range(len(self.layers[i]))]
 
 	def replace_neuron(self, index, new_neuron):
 		# keeps track of the ith index
-		on_layer = -1
+		on_layer = 0
 		# keeps track of the jth index
-		on_neuron = -1
+		on_neuron = 0
 		matching_index = 0
 		for i in range(len(self.layers)):
-			on_layer += 1
-			on_neuron = -1
+			# on_neuron goes to 0 as we go into a new layer every time
+			on_neuron = 0
 			for j in range(len(self.layers[i])):
-				on_neuron += 1
-				matching_index += 1
+				# if matching_index is the index provided we need to break out of BOTH the loops and replace the neuron
 				if matching_index == index:
-					break
+					self.layers[on_layer][on_neuron] = new_neuron
+					# both loops are broken down as I return
+					return
+				# the matching index always gets incremented whenever we are traversing through the neurons in each layer
+				matching_index += 1
+				# the layer index gets incremented each time as the on_neuron keeps track of the index of the neuron
+				# we are on at a specific layer
+				on_neuron += 1
+			# we increment the layer we are on everytime the first loop iterates
+			# as the first loop loops over the layers
+			on_layer += 1
 
+		if matching_index < index:
+			return
 
 
 
 	# takes in the index of the array element which will get replaced by the new bias neuron
-	def replace_bias(self, index, bias):
-		self.biases[index] = bias
+	def replace_bias(self, index, new_bias):
+		self.biases[index] = new_bias
 
 	def feed_forward(self, inputs):
 		# will contain arrays of all the outputs in each layer of the neural network
@@ -98,9 +105,11 @@ class NeuralNetwork:
 def main():
 	nn = NeuralNetwork([2, 2, 1])
 
-	print(len(nn.retrieve_weights_per_neuron()))
-	print(nn.dimensions)
-	print(nn.query([0, 1]))
+	print(nn.retrieve_weights_per_neuron())
+
+	nn.replace_neuron(3, 4)
+
+	print(nn.retrieve_weights_per_neuron())
 
 
 if __name__ == "__main__":
