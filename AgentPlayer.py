@@ -7,23 +7,31 @@ import cv2
 from collision_checker import *
 from NeuralNetwork import NeuralNetwork
 import numpy as np
+from Agent import Agent
 
 class AgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
+        # needs to be saved as we will create a new population using the same speed
+        self.speed = speed
         self.steps = 0
         self.go_through_boundary = True
-        self.agents = [(Snake(WINDOW_SIZE[0]/ 2, WINDOW_SIZE[0]/ 2, speed, WINDOW_SIZE[0], WINDOW_SIZE[0]), NeuralNetwork((8, 20, 4))) for i in range(POPULATION_SIZE)]
+        self.agents = [Agent(self.speed) for i in range(POPULATION_SIZE)]
         for agent in self.agents:
-            snake = agent[0]
-            for j in range(7):
-                snake.grow()
+            for j in range(2):
+                agent.body.grow()
 
     def consumption_check(self, snake):
         if collision(snake, self.food_stack[0]):
             return True
         else:
             return False
+
+    def create_new_population(self):
+        self.agents = [Agent(self.speed) for i in range(POPULATION_SIZE)]
+        for agent in self.agents:
+            for j in range(2):
+                agent.body.grow()
 
     def game_loop(self, key_input = None):
         self.steps += 1
@@ -43,39 +51,46 @@ class AgentPlayer(Player):
         # draw the snake
         i = 0
         for agent in self.agents:
-            snake = agent[0]
-            brain = agent[1]
 
-            head_x = snake.get_head_coor()[0]
-            head_y = snake.get_head_coor()[1]
-            mid_x = snake.get_mid_coor()[0]
-            mid_y = snake.get_mid_coor()[1]
-            tail_x = snake.get_tail_coor()[0]
-            tail_y = snake.get_tail_coor()[1]
-            food_x = snake.distance_from_food_x(self.food_stack[0])
-            food_y = snake.distance_from_food_y(self.food_stack[0])
+            head_x = agent.body.get_head_coor()[0]
+            head_y = agent.body.get_head_coor()[1]
+            mid_x = agent.body.get_mid_coor()[0]
+            mid_y = agent.body.get_mid_coor()[1]
+            tail_x = agent.body.get_tail_coor()[0]
+            tail_y = agent.body.get_tail_coor()[1]
+            food_x = agent.body.distance_from_food_x(self.food_stack[0])
+            food_y = agent.body.distance_from_food_y(self.food_stack[0])
 
-            #print([head_x, head_y, mid_x, mid_y, tail_x, tail_y, food_x, food_y])
             # NN will take 8 inputs and reproduce 4 outputs
-            movement = np.argmax(brain.get_movement([head_x, head_y, mid_x, mid_y, tail_x, tail_y, food_x, food_y]))
+            movement = np.argmax(agent.brain.get_movement([head_x, head_y, mid_x, mid_y, tail_x, tail_y, food_x, food_y]))
 
             if movement == 0:
-                snake.change_direction("up")
+                agent.body.change_direction("up")
             elif movement == 1:
-                snake.change_direction("down")
+                agent.body.change_direction("down")
             elif movement == 2:
-                snake.change_direction("left")
+                agent.body.change_direction("left")
             elif movement == 3:
-                snake.change_direction("right")
+                agent.body.change_direction("right")
 
-            end = snake.draw(self.screen, self.go_through_boundary)
+            end = agent.body.draw(self.screen, self.go_through_boundary)
+
+            if (end):
+                agent.dead = True
+                self.agents.remove(agent)
+                print("An agent has died!")
 
             # check here if the snake ate the food
-            if self.consumption_check(snake):
+            if self.consumption_check(agent.body):
                 self.spawn_food()
-                snake.grow()
+                agent.body.grow()
+                # agent gets a point if he can eat the food
+                agent.points += 1
 
             i += 1
+
+        if self.steps == 100:
+            self.create_new_population()
 
 
         pygame.display.flip()

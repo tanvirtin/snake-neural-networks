@@ -103,7 +103,6 @@ class NeuralNetwork:
 		# convert inputs list to 2d array
 		inputs = np.transpose(np.array([np.array(inputs)]))
 		# get the last layer of the output
-		#print(self.feed_forward(inputs)[-1])
 		return self.feed_forward(inputs)[-1]
 
 def main():

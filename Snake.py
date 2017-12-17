@@ -10,7 +10,6 @@ class Snake(SnakeSegment):
             self.head_size = 20
             # contains the segments which make up the body
             self.body = []
-            self.reward = 0
             # the image of the head is stored here
             # I need to scale the image to correct size
             self.head = pygame.transform.scale(pygame.image.load("./assets/head.png"), (self.head_size, self.head_size))
@@ -53,14 +52,14 @@ class Snake(SnakeSegment):
         return self.body[-1].coordinates
 
     def get_mid_coor(self):
-        midpoint = len(self.body) / 2
+        midpoint = (len(self.body) / 2)
         midpoint = int(midpoint)
+        #print("Body has length: {}, midpoint is: {}".format(len(self.body), midpoint))
         return self.body[midpoint].coordinates
 
     def grow(self):
         # NOTE the x and y value of the SnakeSegment doesn't matter atm as it gets updated when it gets drawn
         self.body.append(SnakeSegment(0, 0, self.speed, self.boundary_x, self.boundary_y, False))
-        self.reward += 1
 
     # MAIN GAME LOGIC TO UPDATE THE BODIES
     # this function will be invoked and the head's previous x and y coordinates
