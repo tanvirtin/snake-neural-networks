@@ -6,52 +6,48 @@ from util import *
 import cv2
 from collision_checker import *
 from NeuralNetwork import NeuralNetwork
+import numpy as np
 
 class AgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
-        self.step = 0
         self.go_through_boundary = True
-        self.snakes = [Snake(WINDOW_SIZE[0]/ 2, WINDOW_SIZE[0]/ 2, speed, WINDOW_SIZE[0], WINDOW_SIZE[0]) for i in range(POPULATION_SIZE)]
-        self.brains = [NeuralNetwork((1, 5, 4)) for i in range(POPULATION_SIZE)]
+        self.agents = [(Snake(WINDOW_SIZE[0]/ 2, WINDOW_SIZE[0]/ 2, speed, WINDOW_SIZE[0], WINDOW_SIZE[0]), NeuralNetwork((1, 5, 4))) for i in range(POPULATION_SIZE)]
 
-    def consumption_check(self):
-        if collision(self.snake, self.food_stack[0]):
+    def consumption_check(self, snake):
+        if collision(snake, self.food_stack[0]):
             return True
         else:
             return False
 
     def game_loop(self, key_input = None):
-        self.step += 1
-
-        if self.step % 150 == 0:
-            print("150 steps taken")
-
         pygame.event.pump()
 
         self.screen.fill(self.background_color)
 
+        # draw the food
         for food in self.food_stack:
             food.draw(self.screen)
 
-        if not key_input:
-            end = self.snake.draw(self.screen, self.go_through_boundary)
+        # draw the snake
+        for agent in self.agents:
+            # the direction of the snake depends on the neural network
+            movement = np.argmax(agent[1].get_movement(random.random()))
+            print(movement)
+            if movement == 0:
+                agent[0].change_direction("up")
+            elif movement == 1:
+                agent[0].change_direction("down")
+            elif movement == 2:
+                agent[0].change_direction("left")
+            elif movement == 3:
+                agent[0].change_direction("right")
 
-        else:
-            self.snake.change_direction(key_input)
-            end = self.snake.draw(self.screen, self.go_through_boundary)
+            end = agent[0].draw(self.screen, self.go_through_boundary)
 
-        # check here if the snake ate the food
-        if self.consumption_check():
-
-            self.spawn_food()
-
-            # finally we grow the snake as well by adding a new segment to the snake's body
-            self.snake.grow()
-            self.step = 0
+            # check here if the snake ate the food
+            if self.consumption_check(agent[0]):
+                self.spawn_food()
+                agent[0].grow()
 
         pygame.display.flip()
-
-        # print("Distance from food: {}".format(self.snake.distance_from_food_x(self.food_stack[0])))
-
-        return end

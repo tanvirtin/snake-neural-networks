@@ -68,8 +68,6 @@ class NeuralNetwork:
 		if matching_index < index:
 			return
 
-
-
 	# takes in the index of the array element which will get replaced by the new bias neuron
 	def replace_bias(self, index, new_bias):
 		self.biases[index] = new_bias
@@ -83,10 +81,10 @@ class NeuralNetwork:
 			# if we are in the first layer we are dealing with the inputs provided
 			# to the neural network
 			if i == 0:
-				output = scipy.special.expit(np.dot(self.layers[i], inputs) + self.biases[i])
+				output = scipy.special.expit(np.dot(self.layers[i], inputs))
 			# else we are dealing with the output of the hidden layers
 			else:
-				output = scipy.special.expit(np.dot(self.layers[i], outputs[i - 1]) + self.biases[i])
+				output = scipy.special.expit(np.dot(self.layers[i], outputs[i - 1]))
 
 			output = np.array(output)
 			# we finally append the hiddenOutput to the layers of hiddenOutputs
@@ -95,7 +93,7 @@ class NeuralNetwork:
 		return outputs
 
 	# query the neural network
-	def query(self, inputs):
+	def get_movement(self, inputs):
 		# convert inputs list to 2d array
 		inputs = np.transpose(np.array([np.array(inputs)]))
 		# get the last layer of the output
