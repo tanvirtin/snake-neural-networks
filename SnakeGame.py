@@ -4,7 +4,7 @@ from Food import Food
 import time
 import keyboard
 from Snake import Snake
-from AgentPlayer import AgentPlayer
+from GeneticAgentPlayer import GeneticAgentPlayer
 from util import *
 
 class SnakeGame(object):
@@ -13,7 +13,11 @@ class SnakeGame(object):
         self.snakes_speed = SPEED
 
         if not ai_mode:
-            self.ap = AgentPlayer(self.screen, self.snakes_speed)
+            self.gap = GeneticAgentPlayer(self.screen, self.snakes_speed)
+
+        else:
+            # use randomized reinforcement learning
+            pass
 
     def ap_game_loop(self):
-        return self.ap.game_loop()
+        return self.gap.game_loop()

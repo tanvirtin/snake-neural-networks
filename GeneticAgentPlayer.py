@@ -10,7 +10,7 @@ import numpy as np
 from Agent import Agent
 from pygame.locals import *
 
-class AgentPlayer(Player):
+class GeneticAgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
         # needs to be saved as we will create a new population using the same speed
