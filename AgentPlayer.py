@@ -39,7 +39,7 @@ class AgentPlayer(Player):
         pygame.font.init()
 
         default_font = pygame.font.get_default_font()
-        font_renderer = pygame.font.Font(default_font, 20)
+        font_renderer = pygame.font.Font(default_font, 10)
 
         # To create a surface containing `Some Text`
         label = font_renderer.render("Generation - {}".format(self.generation_num), 1, (0,0,0)) # RGB Color
@@ -61,6 +61,7 @@ class AgentPlayer(Player):
 
         # draw the snake
         i = 0
+
         for agent in self.agents:
             head_x = agent.body.get_head_coor()[0]
             head_y = agent.body.get_head_coor()[1]
