@@ -32,13 +32,40 @@ class NeuralNetwork:
 
 			self.layers.append(hidden_layer)
 
+		self.flattened_neurons = self.flatten
+
+	def flatten(self):
+		return [self.layers[i][j] for i in range(len(self.layers)) for j in range(len(self.layers[i]))]
+
 	# need to return biases so that it can get swapped for crossover where two best parents breed to get a new child
 	def retrieve_bias_weights_per_neuron(self):
 		return self.biases
 
-
+	# returns all the neurons in neural network into a flattend single layered array
 	def retrieve_weights_per_neuron(self):
-		return [self.layers[i][j] for i in range(len(self.layers)) for j in range(len(self.layers[i]))]
+		return self.flattened_neurons()
+
+	def replace_neuron(self, index, new_neuron):
+		# keeps track of the ith index
+		on_layer = -1
+		# keeps track of the jth index
+		on_neuron = -1
+		matching_index = 0
+		for i in range(len(self.layers)):
+			on_layer += 1
+			on_neuron = -1
+			for j in range(len(self.layers[i])):
+				on_neuron += 1
+				matching_index += 1
+				if matching_index == index:
+					break
+
+
+
+
+	# takes in the index of the array element which will get replaced by the new bias neuron
+	def replace_bias(self, index, bias):
+		self.biases[index] = bias
 
 	def feed_forward(self, inputs):
 		# will contain arrays of all the outputs in each layer of the neural network
@@ -71,9 +98,8 @@ class NeuralNetwork:
 def main():
 	nn = NeuralNetwork([2, 2, 1])
 
-	print(nn.retrieve_weights_per_neuron())
-	print(nn.retrieve_bias_weights_per_neuron())
-
+	print(len(nn.retrieve_weights_per_neuron()))
+	print(nn.dimensions)
 	print(nn.query([0, 1]))
 
 
