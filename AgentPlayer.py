@@ -3,7 +3,7 @@ from Snake import Snake
 import pygame
 import random
 from util import *
-import cv2
+#import cv2
 from collision_checker import *
 from NeuralNetwork import NeuralNetwork
 import numpy as np
