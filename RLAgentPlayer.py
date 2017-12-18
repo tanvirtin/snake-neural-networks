@@ -3,7 +3,6 @@ from Snake import Snake
 import pygame
 import random
 from util import *
-import cv2
 from collision_checker import *
 import sys
 
@@ -14,21 +13,14 @@ class RLAgentPlayer(Player):
         self.snakes_speed = speed
         self.snake = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.snakes_speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
         self.go_through_boundary = True
+        for i in range(8):
+            self.snake.grow()
 
     def consumption_check(self):
         if collision(self.snake, self.food_stack[0]):
             return True
         else:
             return False
-
-    def get_game_pixels(self):
-        # get the game pixel
-        pixels = pygame.surfarray.array3d(pygame.display.get_surface())
-        # # convert pixel into greyscale image with only 1 channel
-        # cv2 is far more superior then any other library in image manipulation
-        pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY) / 255
-
-        return pixels
 
     def display_info(self):
         pygame.font.init()
@@ -44,6 +36,47 @@ class RLAgentPlayer(Player):
         for food in self.food_stack:
             food.draw(self.screen)
 
+    def map_keys(self, pred):
+        if self.snake.current_direction == "right":
+            # left from current point of view
+            if pred == -1:
+                self.snake.change_direction("up")
+            # right from current point of view
+            elif pred == 1:
+                self.snake.change_direction("down")
+
+        elif self.snake.current_direction == "left":
+            # left from current point of view
+            if pred == -1:
+                self.snake.change_direction("down")
+            # right from current point of view
+            elif pred == 1:
+                self.snake.change_direction("up")
+
+        elif self.snake.current_direction == "up":
+            # left from current point of view
+            if pred == -1:
+                self.snake.change_direction("left")
+            # right from current point of view
+            elif pred == 1:
+                self.snake.change_direction("right")
+
+        elif self.snake.current_direction == "down":
+            # left from current point of view
+            if pred == -1:
+                self.snake.change_direction("right")
+            # right from current point of view
+            elif pred == 1:
+                self.snake.change_direction("left")
+
+
+    def get_input_data(self, action):
+        # all the prediction of the next frame's collision movements
+        coll_pred = self.snake.self_collision_prediction()
+        # get distance from the snake and food
+        distance_from_food = self.snake.distance_from_food(self.food_stack[0])
+        return [coll_pred[0], coll_pred[1], coll_pred[2], distance_from_food, action]
+
     def game_loop(self, key_input = None):
         pygame.event.pump()
 
@@ -54,14 +87,15 @@ class RLAgentPlayer(Player):
         for food in self.food_stack:
             food.draw(self.screen)
 
-        print(self.snake.self_collision_prediction())
+        action = random.randint(-1, 1)
 
-        if not key_input:
-            end = self.snake.draw(self.screen, self.go_through_boundary)
+        nn_data = self.get_input_data(action)
 
-        else:
-            self.snake.change_direction(key_input)
-            end = self.snake.draw(self.screen, self.go_through_boundary)
+        self.map_keys(action)
+
+        print(nn_data)
+
+        end = self.snake.draw(self.screen, self.go_through_boundary)
 
         # check here if the snake ate the food
         if self.consumption_check():

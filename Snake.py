@@ -51,7 +51,7 @@ class Snake(SnakeSegment):
         return snake
 
     def self_collision_prediction_helper(self, direction):
-        # a shallow copy of self is made
+        # a deep copy of self needs to be made to prevent pointer to self and changing self's attributes
         snake_clone = copy.deepcopy(self)
         # the direciton is changed
         snake_clone.change_direction(direction)
@@ -63,7 +63,6 @@ class Snake(SnakeSegment):
         if pred:
             return 1
         return 0
-
 
     # this function will determine if you turn turn left, right or stay in your current direction
     # will you collide with your self or not

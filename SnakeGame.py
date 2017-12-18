@@ -15,7 +15,6 @@ class SnakeGame(object):
 
         if not reinforcement_learning:
             self.player = GeneticAgentPlayer(self.screen, self.snakes_speed)
-
         else:
             self.player = RLAgentPlayer(self.screen, self.snakes_speed)
 
