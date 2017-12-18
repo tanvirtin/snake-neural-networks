@@ -5,19 +5,22 @@ import time
 import keyboard
 from Snake import Snake
 from GeneticAgentPlayer import GeneticAgentPlayer
+from RLAgentPlayer import RLAgentPlayer
 from util import *
 
 class SnakeGame(object):
-    def __init__(self, ai_mode = False):
+    def __init__(self, reinforcement_learning = False):
         self.screen = pygame.display.set_mode(WINDOW_SIZE, pygame.HWSURFACE)
         self.snakes_speed = SPEED
 
-        if not ai_mode:
-            self.gap = GeneticAgentPlayer(self.screen, self.snakes_speed)
+        if not reinforcement_learning:
+            self.player = GeneticAgentPlayer(self.screen, self.snakes_speed)
 
         else:
-            # use randomized reinforcement learning
-            pass
+            self.player = RLAgentPlayer(self.screen, self.snakes_speed)
 
-    def ap_game_loop(self):
-        return self.gap.game_loop()
+    def ga_game_loop(self):
+        return self.player.game_loop()
+
+    def rl_game_loop(self, key_input = None):
+        return self.player.game_loop(key_input)

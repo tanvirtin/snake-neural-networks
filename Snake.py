@@ -13,6 +13,7 @@ class Snake(SnakeSegment):
             # the image of the head is stored here
             # I need to scale the image to correct size
             self.head = pygame.transform.scale(pygame.image.load("./assets/head.png"), (self.head_size, self.head_size))
+            self.score = 0
 
     def self_collision_check(self):
         bodies = self.body
@@ -60,6 +61,7 @@ class Snake(SnakeSegment):
     def grow(self):
         # NOTE the x and y value of the SnakeSegment doesn't matter atm as it gets updated when it gets drawn
         self.body.append(SnakeSegment(0, 0, self.speed, self.boundary_x, self.boundary_y, False))
+        self.score += 1
 
     # MAIN GAME LOGIC TO UPDATE THE BODIES
     # this function will be invoked and the head's previous x and y coordinates
@@ -74,6 +76,10 @@ class Snake(SnakeSegment):
             # so when in the next frame all the segment will be at the position of their previous segment's position, this creates the snake
             # body delay effect
             prev_x, prev_y, previous_direction = segment.draw(screen, prev_x, prev_y, go_through)
+
+    # WHEN IN randomised reinforment learning collision checks will only be done on the body only, as the snake is allowed to go through the borders
+
+
 
     # draws the segment
     def draw(self, screen, go_through_boundary = False):
