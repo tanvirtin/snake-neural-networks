@@ -191,9 +191,6 @@ class Snake(SnakeSegment):
             # body delay effect
             prev_x, prev_y, previous_direction = segment.draw(screen, prev_x, prev_y, go_through)
 
-    # WHEN IN randomised reinforment learning collision checks will only be done on the body only, as the snake is allowed to go through the borders
-
-
 
     # draws the segment
     def draw(self, screen, go_through_boundary = False):

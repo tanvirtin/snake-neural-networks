@@ -10,6 +10,10 @@ class RLAgent(object):
         self.brain = self.__create_brain(1e-2)
         self.saved_brain = "rl-agent-brain.tflearn"
 
+    # creates a new body when the snake dies
+    def create_new_body(self):
+        self.body = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
+
     # the tiny powerhouse of the snake is created
     def __create_brain(self, learning_rate):
         network = input_data(shape = [None, 5, 1], name = "input")

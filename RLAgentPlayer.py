@@ -13,6 +13,10 @@ class RLAgentPlayer(Player):
         # takes in x, y of the snake and the speed of the snake
         self.agent = RLAgent(speed)
         self.go_through_boundary = True
+        # total number of games required to train
+        self.total_training_games = 10000
+        # number of frames rendered to collect the data
+        self.goal_steps = 2000
         for i in range(8):
             self.agent.body.grow()
 
@@ -77,6 +81,45 @@ class RLAgentPlayer(Player):
         distance_from_food = self.agent.body.distance_from_food(self.food_stack[0])
         return [coll_pred[0], coll_pred[1], coll_pred[2], distance_from_food, action]
 
+
+    def train_agent():
+        training_data = []
+        for i in range(self.total_training_games):
+            prev_score = 0
+            prev_food_distance = self.distance_from_food(self.agent.body, self.food_stack[0])
+            for j in range(self.goal_steps):
+                end, nn_data = render_training_frame
+
+    def render_training_frame(self):
+        pygame.event.pump()
+
+        self.screen.fill(self.background_color)
+
+        self.display_info()
+
+        for food in self.food_stack:
+            food.draw(self.screen)
+
+        action = random.randint(-1, 1)
+
+        nn_data = self.get_input_data(action)
+
+        self.map_keys(action)
+
+        end = self.agent.body.draw(self.screen, self.go_through_boundary)
+
+        # check here if the snake ate the food
+        if self.consumption_check():
+            self.spawn_food()
+            # finally we grow the snake as well by adding a new segment to the snake's body
+            self.agent.body.grow()
+
+        pygame.display.flip()
+
+        return end, nn_data
+
+
+
     def game_loop(self, key_input = None):
         pygame.event.pump()
 
@@ -106,7 +149,5 @@ class RLAgentPlayer(Player):
             self.agent.body.grow()
 
         pygame.display.flip()
-
-        #print("Distance from food: {}".format(self.agent.body.distance_from_food(self.food_stack[0])))
 
         return end
