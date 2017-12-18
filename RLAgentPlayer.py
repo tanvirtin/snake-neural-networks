@@ -54,6 +54,8 @@ class RLAgentPlayer(Player):
         for food in self.food_stack:
             food.draw(self.screen)
 
+        print(self.snake.self_collision_prediction())
+
         if not key_input:
             end = self.snake.draw(self.screen, self.go_through_boundary)
 

@@ -2,6 +2,7 @@ from SnakeSegment import SnakeSegment
 import pygame
 import math
 from collision_checker import *
+import copy
 
 # Snake is a SnakeSegment itself and also contains other SnakeSegments
 class Snake(SnakeSegment):
@@ -15,18 +16,132 @@ class Snake(SnakeSegment):
             self.head = pygame.transform.scale(pygame.image.load("./assets/head.png"), (self.head_size, self.head_size))
             self.score = 0
 
-    def self_collision_check(self):
-        bodies = self.body
+    def self_collision_check(self, snake):
+        bodies = snake.body
         seg_count = 0
         for segment in bodies:
             # we check for collision only if theres more than 2 head
             if seg_count > 2:
-                if snake_collision(self, segment):
+                if snake_collision(snake, segment):
                     return True
             seg_count += 1
         # False is returend if and ONLY if we get out of the loop and have iterated over every single segment and found no collision
         # this prevents the check from just checking one segment finding no collision and returning
         return False
+
+    # takes a snake object and moves it in the direction the snake object is facing
+    def move_snake_in_its_direction(self, snake):
+        # in pygame the y coordinates start at the maximum value or in other words it is flipped
+        if snake.current_direction == "up":
+            # up direction
+            snake.coordinates[1] -= snake.speed
+
+        elif snake.current_direction == "down":
+            # down direction
+            snake.coordinates[1] += snake.speed
+
+        elif snake.current_direction == "right":
+            # down direction
+            snake.coordinates[0] += snake.speed
+
+        elif snake.current_direction == "left":
+            # down direction
+            snake.coordinates[0] -= snake.speed
+
+        return snake
+
+    def self_collision_prediction_helper(self, direction):
+        # a shallow copy of self is made
+        snake_clone = copy.deepcopy(self)
+        # the direciton is changed
+        snake_clone.change_direction(direction)
+        # new x and y coordinate of the snake is obtained
+        snake_clone = self.move_snake_in_its_direction(snake_clone)
+
+        pred = self.self_collision_check(snake_clone)
+
+        if pred:
+            return 1
+        return 0
+
+
+    # this function will determine if you turn turn left, right or stay in your current direction
+    # will you collide with your self or not
+    def self_collision_prediction(self):
+        left_collision = None
+        front_collision = None
+        right_collision = None
+
+
+        if self.current_direction == "up":
+            # if you are going up you can either continue to go up
+            # you can go left and you can go right
+
+            # If you take a left turn from your point of view what happens
+            # check left
+            left_collision = self.self_collision_prediction_helper("left")
+
+            # If you take a right turn from your point of view what happens
+            # check right
+            right_collision = self.self_collision_prediction_helper("right")
+
+            # If you keep going up what happens
+            # check up
+            front_collision = self.self_collision_prediction_helper("up")
+
+
+        elif self.current_direction == "down":
+            # if you are going down you can either continue to go down
+            # you can go left and you can go right
+
+            # if you take a left turn from your point of view what happens
+            # check right
+            left_collision = self.self_collision_prediction_helper("right")
+
+            # if you take a right turn from your point of view what happens
+            # check left
+            right_collision = self.self_collision_prediction_helper("left")
+
+            # if you keep going your current direction what happens
+            # go down
+            front_collision = self.self_collision_prediction_helper("down")
+
+
+        elif self.current_direction == "left":
+            # if you are going left you can either continue to go left
+            # you can go up and you can go down
+
+            # if you take a left turn from your point of view what happens
+            # check down
+            left_collision = self.self_collision_prediction_helper("down")
+
+            # if you take a right turn from your point of view what happens
+            # check up
+            right_collision = self.self_collision_prediction_helper("up")
+
+            # if you keep going your current direction what happens
+            # check left
+            front_collision = self.self_collision_prediction_helper("left")
+
+
+        elif self.current_direction == "right":
+            # if you are going right you can either continue to go right
+            # you can go up and you can go down
+
+
+            # if you take a left turn from your point of view what happens
+            # check up
+            left_collision = self.self_collision_prediction_helper("up")
+
+            # if you take a right turn from your point of view what happens
+            # check down
+            right_collision = self.self_collision_prediction_helper("down")
+
+            # if you keep going your current direction what happens
+            # check right
+            front_collision = self.self_collision_prediction_helper("right")
+
+        return left_collision, front_collision, right_collision
 
     def get_body(self):
         return self.body
@@ -92,22 +207,7 @@ class Snake(SnakeSegment):
         prev_y = self.coordinates[1]
         previous_direction = self.previous_direction
 
-        # in pygame the y coordinates start at the maximum value or in other words it is flipped
-        if self.current_direction == "up":
-            # up direction
-            self.coordinates[1] -= self.speed
-
-        elif self.current_direction == "down":
-            # down direction
-            self.coordinates[1] += self.speed
-
-        elif self.current_direction == "right":
-            # down direction
-            self.coordinates[0] += self.speed
-
-        elif self.current_direction == "left":
-            # down direction
-            self.coordinates[0] -= self.speed
+        self = self.move_snake_in_its_direction(self)
 
         # if go through_boundary is specified then the snake goes through the boundary
         if go_through_boundary:
@@ -119,7 +219,7 @@ class Snake(SnakeSegment):
 
         self.update_body(screen, prev_x, prev_y, previous_direction, go_through_boundary)
 
-        if self.self_collision_check() or boundary_collision:
+        if self.self_collision_check(self) or boundary_collision:
             return True
 
         return False
