@@ -82,13 +82,26 @@ class RLAgentPlayer(Player):
         return [coll_pred[0], coll_pred[1], coll_pred[2], distance_from_food, action]
 
 
-    def train_agent():
+    def train_agent(self):
         training_data = []
         for i in range(self.total_training_games):
             prev_score = 0
-            prev_food_distance = self.distance_from_food(self.agent.body, self.food_stack[0])
+            prev_food_distance = self.agent.body.distance_from_food(self.food_stack[0])
             for j in range(self.goal_steps):
-                end, nn_data = render_training_frame
+                end, nn_data = self.render_training_frame()
+                if end:
+                    training_data.append([nn_data, -1])
+                    # when game ends we reconstruct the body of the snake
+                    self.agent.create_new_body()
+                    break
+                else:
+                    food_distance = self.agent.body.distance_from_food(self.food_stack[0])
+                    if self.agent.body.score > prev_score or food_distance < prev_food_distance:
+                        training_data.append([nn_data, 1])
+                    else:
+                        training_data.append([nn_data, 0])
+                    prev_food_distance = food_distance
+        agent.learn(training_data)
 
     def render_training_frame(self):
         pygame.event.pump()

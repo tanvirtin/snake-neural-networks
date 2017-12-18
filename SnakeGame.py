@@ -23,3 +23,6 @@ class SnakeGame(object):
 
     def rl_game_loop(self, key_input = None):
         return self.player.game_loop(key_input)
+
+    def prepare_rl_player(self):
+        self.player.train_agent()
