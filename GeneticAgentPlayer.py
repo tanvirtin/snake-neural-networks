@@ -7,7 +7,7 @@ from util import *
 from collision_checker import *
 from NeuralNetwork import NeuralNetwork
 import numpy as np
-from Agent import Agent
+from GAAgent import GAAgent
 from pygame.locals import *
 
 class GeneticAgentPlayer(Player):
@@ -17,7 +17,7 @@ class GeneticAgentPlayer(Player):
         self.speed = speed
         self.steps = 0
         self.go_through_boundary = False
-        self.agents = [Agent(self.speed) for i in range(POPULATION_SIZE)]
+        self.agents = [GAAgent(self.speed) for i in range(POPULATION_SIZE)]
         for agent in self.agents:
             for j in range(2):
                 agent.body.grow()
