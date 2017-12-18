@@ -6,6 +6,8 @@ from util import *
 from collision_checker import *
 from RLAgent import RLAgent
 import sys
+import numpy as np
+import math
 
 class RLAgentPlayer(Player):
     def __init__(self, screen, speed):
@@ -14,11 +16,9 @@ class RLAgentPlayer(Player):
         self.agent = RLAgent(speed)
         self.go_through_boundary = True
         # total number of games required to train
-        self.total_training_games = 10000
+        self.total_training_games = 10
         # number of frames rendered to collect the data
         self.goal_steps = 2000
-        for i in range(8):
-            self.agent.body.grow()
 
     def consumption_check(self):
         if collision(self.agent.body, self.food_stack[0]):
@@ -39,6 +39,16 @@ class RLAgentPlayer(Player):
         # draw the food
         for food in self.food_stack:
             food.draw(self.screen)
+
+    def get_angle(self):
+        x1 = self.agent.body.get_x()
+        y1 = self.agent.body.get_y()
+
+        x2 = self.food_stack[0].get_x()
+        y2 = self.food_stack[0].get_y()
+
+        return math.atan2(y2 - y1, x2 - x1)
+
 
     def map_keys(self, pred):
         if self.agent.body.current_direction == "right":
@@ -79,13 +89,17 @@ class RLAgentPlayer(Player):
         coll_pred = self.agent.body.self_collision_prediction()
         # get distance from the snake and food
         distance_from_food = self.agent.body.distance_from_food(self.food_stack[0])
-        return [coll_pred[0], coll_pred[1], coll_pred[2], distance_from_food, action]
+        angle = self.get_angle()
+        return np.array([coll_pred[0], coll_pred[1], coll_pred[2], angle, action])
 
 
     def train_agent(self):
         training_data = []
+        high_score = 3
         for i in range(self.total_training_games):
-            prev_score = 0
+            print("On game number: {}".format(i + 1))
+            print("Highest score: {}".format(high_score))
+            prev_score = 3
             prev_food_distance = self.agent.body.distance_from_food(self.food_stack[0])
             for j in range(self.goal_steps):
                 end, nn_data = self.render_training_frame()
@@ -93,15 +107,22 @@ class RLAgentPlayer(Player):
                     training_data.append([nn_data, -1])
                     # when game ends we reconstruct the body of the snake
                     self.agent.create_new_body()
+                    self.spawn_food()
                     break
                 else:
                     food_distance = self.agent.body.distance_from_food(self.food_stack[0])
                     if self.agent.body.score > prev_score or food_distance < prev_food_distance:
                         training_data.append([nn_data, 1])
+                        prev_score = self.agent.body.score
+                        if prev_score > high_score:
+                            high_score = prev_score
                     else:
                         training_data.append([nn_data, 0])
                     prev_food_distance = food_distance
-        agent.learn(training_data)
+            # end of each game a new body is created
+            self.agent.create_new_body()
+            self.spawn_food()
+        self.agent.learn(training_data)
 
     def render_training_frame(self):
         pygame.event.pump()
@@ -113,7 +134,7 @@ class RLAgentPlayer(Player):
         for food in self.food_stack:
             food.draw(self.screen)
 
-        action = random.randint(-1, 1)
+        action = random.randint(0, 2) - 1
 
         nn_data = self.get_input_data(action)
 
@@ -143,13 +164,13 @@ class RLAgentPlayer(Player):
         for food in self.food_stack:
             food.draw(self.screen)
 
-        action = random.randint(-1, 1)
+        predictions = []
+        for action in range(-1, 2):
+            predictions.append(self.agent.brain.predict(self.get_input_data(action).reshape(-1, 5, 1)))
 
-        nn_data = self.get_input_data(action)
+        action = np.argmax(np.array(predictions)) - 1
 
         self.map_keys(action)
-
-        print(nn_data)
 
         end = self.agent.body.draw(self.screen, self.go_through_boundary)
 

@@ -3,17 +3,22 @@ from util import *
 import tflearn
 from tflearn.layers.core import input_data, fully_connected
 from tflearn.layers.estimator import regression
+import numpy as np
 
 class RLAgent(object):
     def __init__(self, speed):
         self.speed = speed
         self.body = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
+        for _ in range(3):
+            self.body.grow()
         self.brain = self.__create_brain(1e-2)
-        self.saved_brain = "rl-agent-brain.tflearn"
+        self.saved_brain = "./rl-agent-brain.model"
 
     # creates a new body when the snake dies
     def create_new_body(self):
         self.body = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
+        for _ in range(3):
+            self.body.grow()
 
     # the tiny powerhouse of the snake is created
     def __create_brain(self, learning_rate):
