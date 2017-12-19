@@ -9,7 +9,7 @@ import numpy as np
 from GAAgent import GAAgent
 from pygame.locals import *
 
-from multiprocessing.dummy import Pool as ThreadPool 
+from multiprocessing.dummy import Pool as ThreadPool
 
 class GeneticAgentPlayer(Player):
     def __init__(self, screen, speed):
@@ -59,6 +59,40 @@ class GeneticAgentPlayer(Player):
         for food in self.food_stack:
             food.draw(self.screen)
 
+    def map_keys(self, pred, agent):
+        if agent.body.current_direction == "right":
+            # left from current point of view
+            if pred == 0:
+                agent.body.change_direction("up")
+            # right from current point of view
+            elif pred == 2:
+                agent.body.change_direction("down")
+
+        elif agent.body.current_direction == "left":
+            # left from current point of view
+            if pred == 0:
+                agent.body.change_direction("down")
+            # right from current point of view
+            elif pred == 2:
+                agent.body.change_direction("up")
+
+        elif agent.body.current_direction == "up":
+            # left from current point of view
+            if pred == 0:
+                agent.body.change_direction("left")
+            # right from current point of view
+            elif pred == 2:
+                agent.body.change_direction("right")
+
+        elif agent.body.current_direction == "down":
+            # left from current point of view
+            if pred == 0:
+                agent.body.change_direction("right")
+            # right from current point of view
+            elif pred == 2:
+                agent.body.change_direction("left")
+
+
 
     def game_loop(self, key_input = None):
         self.steps += 1
@@ -72,11 +106,11 @@ class GeneticAgentPlayer(Player):
         # draw the snake
         i = 0
 
-        # pool = ThreadPool(4) 
+        # pool = ThreadPool(4)
         # results = pool.map(self.agent_step, self.remaining_agents)
-        # #close the pool and wait for the work to finish 
-        # pool.close() 
-        # pool.join() 
+        # #close the pool and wait for the work to finish
+        # pool.close()
+        # pool.join()
 
         for agent in self.remaining_agents:
             self.agent_step(agent)
@@ -99,7 +133,7 @@ class GeneticAgentPlayer(Player):
                 print("A snake ate a food!")
             i += 1
 
-        if self.steps == 500 or len(self.remaining_agents) == 0:
+        if self.steps == 200 or len(self.remaining_agents) == 0:
             self.evolve_agents()
 
             self.steps = 0
@@ -108,26 +142,22 @@ class GeneticAgentPlayer(Player):
 
         pygame.display.flip()
 
+    def get_input_data(self, agent):
+        # all the prediction of the next frame's collision movements
+        coll_pred = agent.body.self_collision_prediction()
+        # get distance from the snake and food
+        distance_from_food = agent.body.distance_from_food(self.food_stack[0])
+        #angle = self.get_angle()
+        return [coll_pred[0], coll_pred[1], coll_pred[2], distance_from_food]
+
     def agent_step(self, agent):
-        head_x = agent.body.get_head_coor()[0]
-        head_y = agent.body.get_head_coor()[1]
-        mid_x = agent.body.get_mid_coor()[0]
-        mid_y = agent.body.get_mid_coor()[1]
-        tail_x = agent.body.get_tail_coor()[0]
-        tail_y = agent.body.get_tail_coor()[1]
-        food_x = agent.body.distance_from_food_x(self.food_stack[0])
-        food_y = agent.body.distance_from_food_y(self.food_stack[0])
+
+        input_data = self.get_input_data(agent)
+
 
         agent.set_fitness(self.food_stack[0])
 
         # NN will take 8 inputs and reproduce 4 outputs
-        movement = agent.brain.get_movement([head_x, head_y, mid_x, mid_y, tail_x, tail_y, food_x, food_y])
+        movement = agent.brain.get_movement(input_data)
 
-        if movement == 0:
-            agent.body.change_direction("up")
-        elif movement == 1:
-            agent.body.change_direction("down")
-        elif movement == 2:
-            agent.body.change_direction("left")
-        elif movement == 3:
-            agent.body.change_direction("right")
+        self.map_keys(movement, agent)
