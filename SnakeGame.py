@@ -5,6 +5,7 @@ from Snake import Snake
 from GeneticAgentPlayer import GeneticAgentPlayer
 from RLAgentPlayer import RLAgentPlayer
 from util import *
+from SinglePlayer import SinglePlayer
 
 class SnakeGame(object):
     def __init__(self, reinforcement_learning = False):

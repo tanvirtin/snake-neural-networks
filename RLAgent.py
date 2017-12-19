@@ -12,7 +12,6 @@ class RLAgent(object):
         for _ in range(3):
             self.body.grow()
         self.brain = self.__create_brain(1e-2)
-        self.saved_brain = "./rl-agent-brain.model"
 
     # creates a new body when the snake dies
     def create_new_body(self):
@@ -26,12 +25,11 @@ class RLAgent(object):
         network = fully_connected(network, 25, activation = "relu")
         network = fully_connected(network, 1, activation = "linear")
         network = regression(network, optimizer = "adam", learning_rate = learning_rate, loss = "mean_square", name = "target")
-        model = tflearn.DNN(network, tensorboard_dir = "log")
+        model = tflearn.DNN(network)
         return model
 
     # learns from the training_data provided
     def learn(self, training_data):
         inputs = np.array([i[0] for i in training_data]).reshape(-1, 5, 1)
         outputs = np.array([i[1] for i in training_data]).reshape(-1, 1)
-        self.brain.fit(inputs, outputs, n_epoch = 3, shuffle = True, run_id = self.saved_brain)
-        self.brain.save(self.saved_brain)
+        self.brain.fit(inputs, outputs, n_epoch = 20, shuffle = True)
