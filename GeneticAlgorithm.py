@@ -15,7 +15,7 @@ class GeneticAlgorithm():
         self.mutate_chance = mutate_chance
 
     def init_population(self):
-        return [TFLearnNN((8, 10, 4)) for _ in range(self.pop_size)]
+        return [TFLearnNN((4, 25, 3)) for _ in range(self.pop_size)]
         #return [NeuralNetwork((8, 10, 4)) for _ in range(self.pop_size)]
         #return [TFNN((8, 10, 4)) for _ in range(self.pop_size)]
 
