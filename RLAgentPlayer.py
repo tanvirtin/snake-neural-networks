@@ -8,6 +8,9 @@ from RLAgent import RLAgent
 import sys
 import numpy as np
 import math
+import keyboard
+from tqdm import tqdm
+import time
 
 class RLAgentPlayer(Player):
     def __init__(self, screen, speed):
@@ -19,6 +22,7 @@ class RLAgentPlayer(Player):
         self.total_training_games = 10
         # number of frames rendered to collect the data
         self.goal_steps = 2000
+        self.frames = 0
 
     def consumption_check(self):
         if collision(self.agent.body, self.food_stack[0]):
@@ -40,6 +44,22 @@ class RLAgentPlayer(Player):
         for food in self.food_stack:
             food.draw(self.screen)
 
+    def get_angle_2(self):
+        x1 = self.agent.body.get_x()
+        y1 = self.agent.body.get_y()
+
+        x2 = self.food_stack[0].get_x()
+        y2 = self.food_stack[0].get_y()
+
+        x1 /= np.linalg.norm(np.array([x1, y1]))
+        y1 /= np.linalg.norm(np.array([x1, y1]))
+
+        x2 /= np.linalg.norm(np.array([x2, y2]))
+        y2 /= np.linalg.norm(np.array([x2, y2]))
+
+        # (2 * math.pi is to normalize the angle)
+        return math.atan2(x1 * y2 - y1 * x2, x1 * x2 + y1 * y2) / math.pi
+
     def get_angle(self):
         x1 = self.agent.body.get_x()
         y1 = self.agent.body.get_y()
@@ -47,8 +67,7 @@ class RLAgentPlayer(Player):
         x2 = self.food_stack[0].get_x()
         y2 = self.food_stack[0].get_y()
 
-        return math.atan2(y2 - y1, x2 - x1)
-
+        return math.atan2(y2 - y1, x2 - x1) / math.pi
 
     def map_keys(self, pred):
         if self.agent.body.current_direction == "right":
@@ -83,46 +102,79 @@ class RLAgentPlayer(Player):
             elif pred == 1:
                 self.agent.body.change_direction("left")
 
-
-    def get_input_data(self, action):
+    def get_input_data(self):
         # all the prediction of the next frame's collision movements
         coll_pred = self.agent.body.self_collision_prediction()
         # get distance from the snake and food
         distance_from_food = self.agent.body.distance_from_food(self.food_stack[0])
         angle = self.get_angle()
-        return np.array([coll_pred[0], coll_pred[1], coll_pred[2], angle, action])
-
+        return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
     def train_agent(self):
         training_data = []
-        high_score = 3
-        for i in range(self.total_training_games):
-            print("On game number: {}".format(i + 1))
-            print("Highest score: {}".format(high_score))
+        right_direction = 0
+        wrong_direction = 0
+        wrong_turns = 0
+        for i in tqdm(range(self.total_training_games)):
+            if keyboard.is_pressed("q"):
+                # to quit the program on a button press
+                sys.exit()
             prev_score = 3
             prev_food_distance = self.agent.body.distance_from_food(self.food_stack[0])
+            prev_nn_data = self.get_input_data()
+            steps = 0
             for j in range(self.goal_steps):
-                end, nn_data = self.render_training_frame()
+                steps += 1
+                end, curr_nn_data, current_action = self.render_training_frame()
+                prev_nn_data.append(current_action)
+                prev_nn_data = np.array(prev_nn_data)
                 if end:
-                    training_data.append([nn_data, -1])
+                    wrong_turns += 1
+                    training_data.append([prev_nn_data, -1])
                     # when game ends we reconstruct the body of the snake
                     self.agent.create_new_body()
                     self.spawn_food()
                     break
                 else:
+                    right_direction += 1
                     food_distance = self.agent.body.distance_from_food(self.food_stack[0])
                     if self.agent.body.score > prev_score or food_distance < prev_food_distance:
-                        training_data.append([nn_data, 1])
-                        prev_score = self.agent.body.score
-                        if prev_score > high_score:
-                            high_score = prev_score
+                        training_data.append([prev_nn_data, 1])
                     else:
-                        training_data.append([nn_data, 0])
+                        wrong_direction += 1
+                        training_data.append([prev_nn_data, 0])
                     prev_food_distance = food_distance
+                    prev_nn_data = curr_nn_data
+                    prev_score = self.agent.body.score
             # end of each game a new body is created
             self.agent.create_new_body()
             self.spawn_food()
+            print("Steps taken: {}".format(steps))
+            print("Right Directions {}".format(right_direction))
+            print("Wrong Directions {}".format(wrong_direction))
+            print("Wrong Turns {}".format(wrong_turns))
+
+        new_length = (wrong_direction * 2) + wrong_turns
+
+        training_data = self.process_training_data(training_data, right_direction, wrong_direction)
+
         self.agent.learn(training_data)
+
+    def process_training_data(self, training_data, right_direction, wrong_direction):
+        new_training_data = []
+        to_match = 0
+        for i in range(len(training_data)):
+            if training_data[i][1] == 1:
+                to_match += 1
+                if to_match != wrong_direction:
+                    new_training_data.append(training_data[i])
+            else:
+                new_training_data.append(training_data[i])
+
+        return new_training_data
+
+
+
 
     def render_training_frame(self):
         pygame.event.pump()
@@ -134,9 +186,7 @@ class RLAgentPlayer(Player):
         for food in self.food_stack:
             food.draw(self.screen)
 
-        action = random.randint(0, 2) - 1
-
-        nn_data = self.get_input_data(action)
+        action = random.randint(-1, 2)
 
         self.map_keys(action)
 
@@ -150,38 +200,63 @@ class RLAgentPlayer(Player):
 
         pygame.display.flip()
 
-        return end, nn_data
+        nn_data = self.get_input_data()
 
+        return end, nn_data, action
 
+    def kill_idle_game(self):
+        self.frames += 1
+        if self.frames == 400:
+            self.frames = 0
+            return True
 
-    def game_loop(self, key_input = None):
-        pygame.event.pump()
-
-        self.screen.fill(self.background_color)
-
-        self.display_info()
-
-        for food in self.food_stack:
-            food.draw(self.screen)
+    def use_brain_to_move(self):
+        prev_nn_data = self.get_input_data()
 
         predictions = []
         for action in range(-1, 2):
-            predictions.append(self.agent.brain.predict(self.get_input_data(action).reshape(-1, 5, 1)))
+            nn_data = self.get_input_data()
+            nn_data.append(action)
+            nn_data = np.array(nn_data)
+            # depending on previous observation what move should i generate
+            predictions.append(self.agent.brain.predict(nn_data.reshape(-1, 5, 1)))
+
+        print(predictions)
 
         action = np.argmax(np.array(predictions)) - 1
 
         self.map_keys(action)
 
-        end = self.agent.body.draw(self.screen, self.go_through_boundary)
 
-        # check here if the snake ate the food
-        if self.consumption_check():
+    def game_loop(self, key_input = None):
+        while not keyboard.is_pressed("q"):
+            pygame.event.pump()
 
-            self.spawn_food()
+            self.screen.fill(self.background_color)
 
-            # finally we grow the snake as well by adding a new segment to the snake's body
-            self.agent.body.grow()
+            self.display_info()
 
-        pygame.display.flip()
+            for food in self.food_stack:
+                food.draw(self.screen)
 
-        return end
+            self.use_brain_to_move()
+
+            end = self.agent.body.draw(self.screen, self.go_through_boundary)
+
+            # if snake doesnt do anything or the snake died then kill the game
+            # if self.kill_idle_game() or end:
+            #     return
+
+            # check here if the snake ate the food
+            if self.consumption_check():
+
+                self.frames = 0
+
+                self.spawn_food()
+
+                # finally we grow the snake as well by adding a new segment to the snake's body
+                self.agent.body.grow()
+
+            pygame.display.flip()
+
+            time.sleep(0.05)

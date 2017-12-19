@@ -77,7 +77,7 @@ class SnakeSegment(GameObj):
         elif self.coordinates[0] < 0:
             self.coordinates[0] = self.boundary_x
 
-    def boundary_collision(self):
-        if self.coordinates[1] < 0 or self.coordinates[1] > self.boundary_y - self.weird_boundary_offset or self.coordinates[0] > self.boundary_x - self.weird_boundary_offset or self.coordinates[0] < 0:
+    def boundary_collision(self, snake):
+        if snake.coordinates[1] < 0 or snake.coordinates[1] > snake.boundary_y - snake.weird_boundary_offset or snake.coordinates[0] > snake.boundary_x - snake.weird_boundary_offset or snake.coordinates[0] < 0:
             return True
         return False

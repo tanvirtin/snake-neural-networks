@@ -7,6 +7,7 @@ from Snake import Snake
 from GeneticAgentPlayer import GeneticAgentPlayer
 from RLAgentPlayer import RLAgentPlayer
 from util import *
+from SinglePlayer import SinglePlayer
 
 class SnakeGame(object):
     def __init__(self, reinforcement_learning = False):
@@ -17,6 +18,11 @@ class SnakeGame(object):
             self.player = GeneticAgentPlayer(self.screen, self.snakes_speed)
         else:
             self.player = RLAgentPlayer(self.screen, self.snakes_speed)
+
+        # self.player = SinglePlayer(self.screen, SPEED)
+
+    def sp_game_loop(self, key = None):
+        return self.player.game_loop(key)
 
     def ga_game_loop(self):
         return self.player.game_loop()

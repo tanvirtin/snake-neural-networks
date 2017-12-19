@@ -3,18 +3,19 @@ import pygame
 import math
 from collision_checker import *
 import copy
+import numpy as np
 
 # Snake is a SnakeSegment itself and also contains other SnakeSegments
 class Snake(SnakeSegment):
     def __init__(self, x, y, speed, boundary_x, boundary_y):
-            super().__init__(x, y, speed, boundary_x, boundary_y, head = True)
-            self.head_size = 20
-            # contains the segments which make up the body
-            self.body = []
-            # the image of the head is stored here
-            # I need to scale the image to correct size
-            self.head = pygame.transform.scale(pygame.image.load("./assets/head.png"), (self.head_size, self.head_size))
-            self.score = 0
+        super().__init__(x, y, speed, boundary_x, boundary_y, head = True)
+        self.head_size = 20
+        # contains the segments which make up the body
+        self.body = []
+        # the image of the head is stored here
+        # I need to scale the image to correct size
+        self.head = pygame.transform.scale(pygame.image.load("./assets/head.png"), (self.head_size, self.head_size))
+        self.score = 0
 
     def self_collision_check(self, snake):
         bodies = snake.body
@@ -58,9 +59,10 @@ class Snake(SnakeSegment):
         # new x and y coordinate of the snake is obtained
         snake_clone = self.move_snake_in_its_direction(snake_clone)
 
-        pred = self.self_collision_check(snake_clone)
+        pred_1 = self.self_collision_check(snake_clone)
+        pred_2 = self.boundary_collision(snake_clone)
 
-        if pred:
+        if pred_1 or pred_2:
             return 1
         return 0
 
@@ -127,7 +129,6 @@ class Snake(SnakeSegment):
             # if you are going right you can either continue to go right
             # you can go up and you can go down
 
-
             # if you take a left turn from your point of view what happens
             # check up
             left_collision = self.self_collision_prediction_helper("up")
@@ -152,7 +153,9 @@ class Snake(SnakeSegment):
         x_distance = self.distance_from_food_x(food)
         y_distance = self.distance_from_food_y(food)
 
-        return math.sqrt(x_distance**2 + y_distance**2) - food.get_size()
+        #math.sqrt(x_distance**2 + y_distance**2) - food.get_size()
+
+        return np.linalg.norm(np.array([x_distance, y_distance]))
 
     def distance_from_food_x(self, food):
         return self.coordinates[0] - food.get_coor()[0]
@@ -209,7 +212,7 @@ class Snake(SnakeSegment):
         if go_through_boundary:
             self.boundary_check_through()
         else:
-            boundary_collision = self.boundary_collision()
+            boundary_collision = self.boundary_collision(self)
 
         screen.blit(self.head, (self.coordinates[0], self.coordinates[1]))
 
