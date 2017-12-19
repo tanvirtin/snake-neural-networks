@@ -119,7 +119,6 @@ class GeneticAgentPlayer(Player):
         food_y = agent.body.distance_from_food_y(self.food_stack[0])
 
         agent.set_fitness(self.food_stack[0])
-        print(agent.fitness)
 
         # NN will take 8 inputs and reproduce 4 outputs
         movement = agent.brain.get_movement([head_x, head_y, mid_x, mid_y, tail_x, tail_y, food_x, food_y])

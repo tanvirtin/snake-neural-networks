@@ -8,7 +8,6 @@ from RLAgent import RLAgent
 import sys
 import numpy as np
 import math
-import keyboard
 from tqdm import tqdm
 import time
 
@@ -116,9 +115,9 @@ class RLAgentPlayer(Player):
         wrong_direction = 0
         wrong_turns = 0
         for i in tqdm(range(self.total_training_games)):
-            if keyboard.is_pressed("q"):
-                # to quit the program on a button press
-                sys.exit()
+            # if keyboard.is_pressed("q"):
+                # # to quit the program on a button press
+                # sys.exit()
             prev_score = 3
             prev_food_distance = self.agent.body.distance_from_food(self.food_stack[0])
             prev_nn_data = self.get_input_data()
