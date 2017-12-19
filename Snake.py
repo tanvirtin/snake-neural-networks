@@ -50,9 +50,19 @@ class Snake(SnakeSegment):
 
         return snake
 
+    def deepcopy(self):
+        d_attrs = ['head_size', 'score', 'current_direction', 'coordinates', 'previous_direction']
+        new_snake = copy.copy(self)
+        print(d_attrs)
+        for attr in d_attrs:
+            print(attr)
+            new_snake.attr = copy.deepcopy(getattr(self, attr))
+        return new_snake
+        
+
     def self_collision_prediction_helper(self, direction):
         # a deep copy of self needs to be made to prevent pointer to self and changing self's attributes
-        snake_clone = copy.deepcopy(self)
+        snake_clone = self.deepcopy()
         # the direciton is changed
         snake_clone.change_direction(direction)
         # new x and y coordinate of the snake is obtained
@@ -145,7 +155,7 @@ class Snake(SnakeSegment):
     def get_body(self):
         return self.body
 
-    def snake_length(self):
+    def length(self):
         return 1 + len(self.body)
 
     def distance_from_food(self, food):

@@ -1,11 +1,17 @@
-from NeuralNetwork import NeuralNetwork
 from Snake import Snake
 from util import *
 
+LENGTH_WEIGHT = 100
+DISTANCE_WEIGHT = 50
+
 class GAAgent(object):
-    def __init__(self, speed):
+    def __init__(self, speed, brain):
         self.body = Snake(WINDOW_SIZE[0]/ 2, WINDOW_SIZE[0]/ 2, speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
-        self.brain = NeuralNetwork((8, 10, 4))
+        self.brain = brain
         self.dead = False
         self.score = 0
         self.fitness = 0
+
+    def set_fitness(self, food):
+        distance_from_food = self.body.distance_from_food(food)
+        self.fitness = self.body.length() * LENGTH_WEIGHT + distance_from_food * DISTANCE_WEIGHT
