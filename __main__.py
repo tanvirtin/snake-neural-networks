@@ -3,7 +3,7 @@ import time
 import sys
 
 def main():
-    game = SnakeGame(True)
+    game = SnakeGame()
 
     game.prepare_players()
 

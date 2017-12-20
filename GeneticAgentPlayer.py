@@ -8,8 +8,7 @@ from collision_checker import *
 import numpy as np
 from GAAgent import GAAgent
 from pygame.locals import *
-
-from multiprocessing.dummy import Pool as ThreadPool
+import math
 
 class GeneticAgentPlayer(Player):
     def __init__(self, screen, speed):
@@ -106,12 +105,6 @@ class GeneticAgentPlayer(Player):
         # draw the snake
         i = 0
 
-        # pool = ThreadPool(4)
-        # results = pool.map(self.agent_step, self.remaining_agents)
-        # #close the pool and wait for the work to finish
-        # pool.close()
-        # pool.join()
-
         for agent in self.remaining_agents:
             self.agent_step(agent)
 
@@ -146,14 +139,11 @@ class GeneticAgentPlayer(Player):
         # all the prediction of the next frame's collision movements
         coll_pred = agent.body.self_collision_prediction()
         # get distance from the snake and food
-        distance_from_food = agent.body.distance_from_food(self.food_stack[0])
-        #angle = self.get_angle()
-        return [coll_pred[0], coll_pred[1], coll_pred[2], distance_from_food]
+        angle = self.get_angle(agent, self.food_stack[0])
+        return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
     def agent_step(self, agent):
-
         input_data = self.get_input_data(agent)
-
 
         agent.set_fitness(self.food_stack[0])
 
@@ -161,3 +151,19 @@ class GeneticAgentPlayer(Player):
         movement = agent.brain.get_movement(input_data)
 
         self.map_keys(movement, agent)
+
+    def get_angle(self, agent, food):
+        head = np.array([agent.body.get_x(), agent.body.get_y()])
+
+        segment = np.array([agent.body.body[0].get_x(), agent.body.body[0].get_y()])
+
+        food = np.array([food.get_x(), food.get_y()])
+
+        snake_direction = head - segment
+        food_direction = food - head
+
+        a = snake_direction / np.linalg.norm(snake_direction)
+        b = food_direction / np.linalg.norm(food_direction)
+
+        return math.atan2(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]) / math.pi
+

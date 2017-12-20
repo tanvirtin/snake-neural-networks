@@ -8,7 +8,7 @@ import numpy as np
 MUTATE_FACTOR = 1 + ((random.random() - 0.5) * 3 + (random.random() - 0.5))
 
 class GeneticAlgorithm():
-    def __init__(self, pop_size=10, evolve_size=4, rand_select=0.3, mutate_chance=0.3):
+    def __init__(self, pop_size=10, evolve_size=4, rand_select=0.2, mutate_chance=0.3):
         self.pop_size = pop_size
         self.evolve_size = evolve_size
         self.rand_select = rand_select
