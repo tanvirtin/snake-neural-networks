@@ -92,7 +92,11 @@ class GeneticAgentPlayer(Player):
 
 
 
-    def game_loop(self, key_input = None):
+    def game_loop(self, input_key = None):
+        while True:
+            self.game_iteration()
+
+    def game_iteration(self, key_input = None):
         self.steps += 1
 
         pygame.event.pump()
