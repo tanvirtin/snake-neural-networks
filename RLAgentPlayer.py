@@ -22,7 +22,13 @@ class RLAgentPlayer(Player):
         # number of frames rendered to collect the data
         self.goal_steps = 2000
         self.frames = 0
-        self.training_data = []
+        # try to load the numpy data, if not possible then set the training_data to an empty list
+        try:
+            print("Training data couldn't be loaded from disk...")
+            # loaded training_data needs to be converted into a list
+            self.training_data = np.load("./rl-learning-data/rl-data.npy").tolist()
+        except:
+            self.training_data = []
         self.game_num = 0
 
     def consumption_check(self):
@@ -108,6 +114,11 @@ class RLAgentPlayer(Player):
     def train_agent(self):
         for _ in range(self.total_training_games):
             self.one_game_iteration()
+
+        print("Training data saved to disk...")
+        # save the numpy data
+        np.save("./rl-learning-data/rl-data.npy", self.training_data)
+        print("Begining to train with {} data".format(len(self.training_data)))
         self.agent.learn(self.training_data)
 
     def one_game_iteration(self):
