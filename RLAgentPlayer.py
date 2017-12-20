@@ -5,7 +5,6 @@ import random
 from util import *
 from collision_checker import *
 from RLAgent import RLAgent
-import sys
 import numpy as np
 import math
 from tqdm import tqdm
@@ -18,32 +17,32 @@ class RLAgentPlayer(Player):
         self.agent = RLAgent(speed)
         self.go_through_boundary = True
         # total number of games required to train
-        self.total_training_games = 10
-        # number of frames rendered to collect the data
-        self.goal_steps = 2000
-        self.frames = 0
-
+        self.idle_frames = 0
+        # try to load the numpy data, if not possible then set the training_data to an empty list
+        try:
+            print("Training data loaded from disk...")
+            # loaded training_data needs to be converted into a list
+            self.training_data = np.load("./rl-learning-data/rl-data.npy").tolist()
+        except:
+            print("Training data couldn't be loaded from disk...")
+            self.training_data = []
     def consumption_check(self):
         if collision(self.agent.body, self.food_stack[0]):
             return True
         else:
             return False
 
-    def display_info(self):
+    def display_info(self, score, high_score):
         pygame.font.init()
 
         default_font = pygame.font.get_default_font()
         font_renderer = pygame.font.Font(default_font, 10)
 
         # To create a surface containing `Some Text`
-        label = font_renderer.render("Score - {}".format(self.agent.body.score), 1, (0,0,0)) # RGB Color
+        label = font_renderer.render("Score - {}, High score - {}".format(score, high_score), 1, (0,0,0)) # RGB Color
         self.screen.blit(label, (0,0))
 
-        # draw the food
-        for food in self.food_stack:
-            food.draw(self.screen)
-
-    def get_angle_2(self):
+    def get_angle(self):
 
         head_x = self.agent.body.get_x()
         head_y = self.agent.body.get_y()
@@ -60,29 +59,7 @@ class RLAgentPlayer(Player):
         a = snake_direction / np.linalg.norm(snake_direction)
         b = food_direction / np.linalg.norm(food_direction)
 
-        # x1 = self.agent.body.get_x()
-        # y1 = self.agent.body.get_y()
-        #
-        # x2 = self.food_stack[0].get_x()
-        # y2 = self.food_stack[0].get_y()
-        #
-        # x1 /= np.linalg.norm(np.array([x1, y1]))
-        # y1 /= np.linalg.norm(np.array([x1, y1]))
-        #
-        # x2 /= np.linalg.norm(np.array([x2, y2]))
-        # y2 /= np.linalg.norm(np.array([x2, y2]))
-
-        # (2 * math.pi is to normalize the angle)
         return math.atan2(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]) / math.pi
-
-    def get_angle(self):
-        x1 = self.agent.body.get_x()
-        y1 = self.agent.body.get_y()
-
-        x2 = self.food_stack[0].get_x()
-        y2 = self.food_stack[0].get_y()
-
-        return math.atan2(y2 - y1, x2 - x1) / math.pi
 
     def map_keys(self, pred):
         if self.agent.body.current_direction == "right":
@@ -122,81 +99,67 @@ class RLAgentPlayer(Player):
         coll_pred = self.agent.body.self_collision_prediction()
         # get distance from the snake and food
         distance_from_food = self.agent.body.distance_from_food(self.food_stack[0])
-        angle = self.get_angle_2()
+        angle = self.get_angle()
         return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
+    def gather_training_data(self):
+        for _ in tqdm(range(TOTAL_TRAINING_GAMES)):
+            self.one_game_iteration()
+
+        print("Training data saved to disk...")
+        # save the numpy data
+        np.save("./rl-learning-data/rl-data.npy", self.training_data)
+
     def train_agent(self):
-        training_data = []
-        right_direction = 0
-        wrong_direction = 0
-        wrong_turns = 0
-        for i in tqdm(range(self.total_training_games)):
-            # if keyboard.is_pressed("q"):
-                # # to quit the program on a button press
-                # sys.exit()
-            prev_score = 3
-            prev_food_distance = self.agent.body.distance_from_food(self.food_stack[0])
-            prev_nn_data = self.get_input_data()
-            steps = 0
-            for j in range(self.goal_steps):
-                steps += 1
-                end, curr_nn_data, current_action = self.render_training_frame()
-                prev_nn_data.append(current_action)
-                prev_nn_data = np.array(prev_nn_data)
-                if end:
-                    wrong_turns += 1
-                    training_data.append([prev_nn_data, -1])
-                    # when game ends we reconstruct the body of the snake
-                    self.agent.create_new_body()
-                    self.spawn_food()
-                    break
+        print("Begining to train with {} data".format(len(self.training_data)))
+        self.agent.learn(self.training_data)
+
+    def one_game_iteration(self):
+        score = 3
+        prev_food_distance = self.agent.body.distance_from_food(self.food_stack[0])
+        prev_nn_data = self.get_input_data()
+        # end dictates if the game has finished or not, initially it will be false
+        end = False
+        while not end:
+            end, curr_nn_data, current_action = self.render_training_frame()
+            prev_nn_data.append(current_action)
+            prev_nn_data = np.array(prev_nn_data)
+            if end:
+                self.training_data.append([prev_nn_data, -1])
+                # when game ends we reconstruct the body of the snake
+                self.agent.create_new_body()
+                self.spawn_food()
+                break
+            else:
+                food_distance = self.agent.body.distance_from_food(self.food_stack[0])
+                if self.agent.body.score > score or food_distance < prev_food_distance:
+                    self.training_data.append([prev_nn_data, 1])
                 else:
-                    right_direction += 1
-                    food_distance = self.agent.body.distance_from_food(self.food_stack[0])
-                    if self.agent.body.score > prev_score or food_distance < prev_food_distance:
-                        training_data.append([prev_nn_data, 1])
-                    else:
-                        wrong_direction += 1
-                        training_data.append([prev_nn_data, 0])
-                    prev_food_distance = food_distance
-                    prev_nn_data = curr_nn_data
-                    prev_score = self.agent.body.score
-            # end of each game a new body is created
-            self.agent.create_new_body()
-            self.spawn_food()
-            # print("Steps taken: {}".format(steps))
-            # print("Right Directions {}".format(right_direction))
-            # print("Wrong Directions {}".format(wrong_direction))
-            # print("Wrong Turns {}".format(wrong_turns))
+                    self.training_data.append([prev_nn_data, 0])
+                prev_food_distance = food_distance
+                prev_nn_data = curr_nn_data
+                score = self.agent.body.score
+        # make end to what its initial state was
+        end = False
+        # end of each game a new body is created
+        self.agent.create_new_body()
+        self.spawn_food()
 
-        # new_length = (wrong_direction * 2) + wrong_turns
-        #
-        # training_data = self.process_training_data(training_data, right_direction, wrong_direction)
-
-        self.agent.learn(training_data)
-
-    def process_training_data(self, training_data, right_direction, wrong_direction):
+    def process_training_data(self, right_direction, wrong_direction):
         new_training_data = []
         to_match = 0
-        for i in range(len(training_data)):
-            if training_data[i][1] == 1:
+        for i in range(len(self.training_data)):
+            if self.training_data[i][1] == 1:
                 to_match += 1
                 if to_match != wrong_direction:
-                    new_training_data.append(training_data[i])
+                    new_training_data.append(self.training_data[i])
             else:
-                new_training_data.append(training_data[i])
+                new_training_data.append(self.training_data[i])
 
         return new_training_data
 
-
-
-
     def render_training_frame(self):
         pygame.event.pump()
-
-        self.screen.fill(self.background_color)
-
-        self.display_info()
 
         for food in self.food_stack:
             food.draw(self.screen)
@@ -213,16 +176,14 @@ class RLAgentPlayer(Player):
             # finally we grow the snake as well by adding a new segment to the snake's body
             self.agent.body.grow()
 
-        pygame.display.flip()
-
         nn_data = self.get_input_data()
 
         return end, nn_data, action
 
     def kill_idle_game(self):
-        self.frames += 1
-        if self.frames == 400:
-            self.frames = 0
+        self.idle_frames += 1
+        if self.idle_frames == 400:
+            self.idle_frames = 0
             return True
 
     def use_brain_to_move(self):
@@ -234,7 +195,7 @@ class RLAgentPlayer(Player):
             nn_data.append(action)
             nn_data = np.array(nn_data)
             # depending on previous observation what move should i generate
-            predictions.append(self.agent.brain.predict(nn_data.reshape(-1, 5, 1)))
+            predictions.append(self.agent.predict(nn_data))
 
         action = np.argmax(np.array(predictions)) - 1
 
@@ -242,34 +203,45 @@ class RLAgentPlayer(Player):
 
 
     def game_loop(self, key_input = None):
-        while True:
-            pygame.event.pump()
+        game_iterations = 5
+        high_score = 0
 
-            self.screen.fill(self.background_color)
+        for _ in range(game_iterations):
+            while True:
+                pygame.event.pump()
 
-            self.display_info()
+                self.screen.fill(self.background_color)
 
-            for food in self.food_stack:
-                food.draw(self.screen)
+                score = self.agent.body.score
+                self.display_info(score, high_score)
 
-            self.use_brain_to_move()
+                for food in self.food_stack:
+                    food.draw(self.screen)
 
-            end = self.agent.body.draw(self.screen, self.go_through_boundary)
+                self.use_brain_to_move()
 
-            # #if snake doesnt do anything or the snake died then kill the game
-            # if self.kill_idle_game() or end:
-            #     return
+                end = self.agent.body.draw(self.screen, self.go_through_boundary)
 
-            # check here if the snake ate the food
-            if self.consumption_check():
+                #if snake doesnt do anything or the snake died then kill the game
+                if end:
+                    # when the snake dies
+                    print("Died after turning its head -> {}".format(self.agent.body.current_direction))
+                    time.sleep(1)
+                    if score > high_score:
+                        high_score = score
+                    # break the loop when the game ends
+                    self.agent.create_new_body()
+                    break
 
-                self.frames = 0
+                # check here if the snake ate the food
+                if self.consumption_check():
+                    self.idle_frames = 0
+                    self.spawn_food()
+                    # finally we grow the snake as well by adding a new segment to the snake's body
+                    self.agent.body.grow()
 
-                self.spawn_food()
+                pygame.display.flip()
 
-                # finally we grow the snake as well by adding a new segment to the snake's body
-                self.agent.body.grow()
+                time.sleep(0.05)
 
-            pygame.display.flip()
-
-            time.sleep(0.05)
+        print("High score -> {}".format(high_score))

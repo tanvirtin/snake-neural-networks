@@ -1,17 +1,21 @@
 from Snake import Snake
 from util import *
-import tflearn
-from tflearn.layers.core import input_data, fully_connected
-from tflearn.layers.estimator import regression
 import numpy as np
+from RLNeuralNetwork import NeuralNetwork
+from RLNeuralNetworkKeras import KerasNeuralNetwork
+from tqdm import tqdm
 
 class RLAgent(object):
-    def __init__(self, speed):
+    def __init__(self, speed, own_implementation = False):
         self.speed = speed
         self.body = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
         for _ in range(3):
             self.body.grow()
-        self.brain = self.__create_brain(1e-2)
+
+        if own_implementation:
+            self.brain = self.__create_brain((5, 200, 200, 1), 1e-2)
+        else:
+            self.brain = self.__create_brain_keras((5, 75, 1))
 
     # creates a new body when the snake dies
     def create_new_body(self):
@@ -19,17 +23,16 @@ class RLAgent(object):
         for _ in range(3):
             self.body.grow()
 
-    # the tiny powerhouse of the snake is created
-    def __create_brain(self, learning_rate):
-        network = input_data(shape = [None, 5, 1], name = "input")
-        network = fully_connected(network, 25, activation = "relu")
-        network = fully_connected(network, 1, activation = "linear")
-        network = regression(network, optimizer = "adam", learning_rate = learning_rate, loss = "mean_square", name = "target")
-        model = tflearn.DNN(network)
-        return model
+    def __create_brain_keras(self, dimensions):
+        return KerasNeuralNetwork(dimensions)
 
-    # learns from the training_data provided
+    def __create_brain(self, dimensions, learning_rate):
+        return NeuralNetwork(dimensions, learning_rate)
+
+    def predict(self, input_data):
+        return self.brain.query(input_data)
+
     def learn(self, training_data):
-        inputs = np.array([i[0] for i in training_data]).reshape(-1, 5, 1)
-        outputs = np.array([i[1] for i in training_data]).reshape(-1, 1)
-        self.brain.fit(inputs, outputs, n_epoch = 3, shuffle = True)
+        batches = 32
+        epochs = 15
+        self.brain.fit(training_data, batches, epochs)

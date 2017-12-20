@@ -21,6 +21,8 @@ class SnakeGame(object):
     def game_loop(self, key_input = None):
         return self.player.game_loop(key_input)
 
-    def prepare_players(self):
-        if self.reinforcement_learning:
-            self.player.train_agent()
+    def gather_data(self):
+        self.player.gather_training_data()
+
+    def train_agent(self):
+        self.player.train_agent()

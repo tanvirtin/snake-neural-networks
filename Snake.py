@@ -1,6 +1,5 @@
 from SnakeSegment import SnakeSegment
 import pygame
-import math
 from collision_checker import *
 import copy
 import numpy as np
@@ -60,7 +59,8 @@ class Snake(SnakeSegment):
 
     def self_collision_prediction_helper(self, direction):
         # a deep copy of self needs to be made to prevent pointer to self and changing self's attributes
-        snake_clone = self.copy()
+        #snake_clone = self.copy()
+        snake_clone = copy.deepcopy(self)
         # the direciton is changed
         snake_clone.change_direction(direction)
         # new x and y coordinate of the snake is obtained
@@ -159,9 +159,6 @@ class Snake(SnakeSegment):
     def distance_from_food(self, food):
         x_distance = self.distance_from_food_x(food)
         y_distance = self.distance_from_food_y(food)
-
-        #math.sqrt(x_distance**2 + y_distance**2) - food.get_size()
-
         return np.linalg.norm(np.array([x_distance, y_distance]))
 
     def distance_from_food_x(self, food):
