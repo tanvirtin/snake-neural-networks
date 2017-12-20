@@ -15,10 +15,10 @@ class RLAgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
         # takes in x, y of the snake and the speed of the snake
-        self.agent = RLAgent(speed, True)
+        self.agent = RLAgent(speed)
         self.go_through_boundary = True
         # total number of games required to train
-        self.total_training_games = 10
+        self.total_training_games = TOTAL_TRAINING_GAMES
         # number of frames rendered to collect the data
         self.goal_steps = 2000
         self.frames = 0
@@ -225,9 +225,12 @@ class RLAgentPlayer(Player):
 
             end = self.agent.body.draw(self.screen, self.go_through_boundary)
 
-            # #if snake doesnt do anything or the snake died then kill the game
-            # if self.kill_idle_game() or end:
-            #     return
+            #if snake doesnt do anything or the snake died then kill the game
+            if end:
+                # when the snake dies
+                print("Died after turning its head to -> {}".format(self.agent.body.current_direction))
+                time.sleep(1)
+                return
 
             # check here if the snake ate the food
             if self.consumption_check():

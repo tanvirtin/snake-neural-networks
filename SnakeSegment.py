@@ -6,7 +6,7 @@ class SnakeSegment(GameObj):
     def __init__(self, x, y, speed, boundary_x, boundary_y, head = False, default_direction = "up"):
         self.body_size = 20
         super().__init__(x, y, self.body_size, self.body_size)
-        self.weird_boundary_offset = 19
+        self.weird_boundary_offset = 25
         if not head:
             # the image of the body is stored here
             # I need to scale the image to correct size
