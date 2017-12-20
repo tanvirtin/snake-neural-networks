@@ -10,13 +10,12 @@ import numpy as np
 import math
 from tqdm import tqdm
 import time
-from threading import Thread
 
 class RLAgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
         # takes in x, y of the snake and the speed of the snake
-        self.agent = RLAgent(speed, True)
+        self.agent = RLAgent(speed)
         self.go_through_boundary = True
         # total number of games required to train
         self.total_training_games = 10
@@ -24,8 +23,7 @@ class RLAgentPlayer(Player):
         self.goal_steps = 2000
         self.frames = 0
         self.training_data = []
-        self.training_threads = [Thread(target = self.one_game_iteration()) for i in range(self.total_training_games)]
-
+        self.game_num = 0
 
     def consumption_check(self):
         if collision(self.agent.body, self.food_stack[0]):
@@ -108,13 +106,13 @@ class RLAgentPlayer(Player):
         return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
     def train_agent(self):
-        for thread in self.training_threads:
-            thread.start()
-        for thread in self.training_threads:
-            thread.join()
+        for _ in range(self.total_training_games):
+            self.one_game_iteration()
         self.agent.learn(self.training_data)
 
     def one_game_iteration(self):
+        self.game_num += 1
+        print("On game: {}".format(self.game_num))
         prev_score = 3
         prev_food_distance = self.agent.body.distance_from_food(self.food_stack[0])
         prev_nn_data = self.get_input_data()
