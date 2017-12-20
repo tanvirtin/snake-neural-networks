@@ -60,7 +60,7 @@ class Snake(SnakeSegment):
 
     def self_collision_prediction_helper(self, direction):
         # a deep copy of self needs to be made to prevent pointer to self and changing self's attributes
-        snake_clone = self.copy()
+        snake_clone = copy.deepcopy(self)
         # the direciton is changed
         snake_clone.change_direction(direction)
         # new x and y coordinate of the snake is obtained
