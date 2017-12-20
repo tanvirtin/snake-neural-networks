@@ -1,7 +1,10 @@
 from Snake import Snake
 from util import *
+import numpy as np
+import math
 
-LENGTH_WEIGHT = 100
+LENGTH_WEIGHT = 10000
+ANGLE_WEIGHT = 5000
 DISTANCE_WEIGHT = 50
 
 class GAAgent(object):
@@ -19,4 +22,21 @@ class GAAgent(object):
 
     def set_fitness(self, food):
         distance_from_food = self.body.distance_from_food(food)
-        self.fitness = self.body.length() * LENGTH_WEIGHT + distance_from_food * DISTANCE_WEIGHT
+        angle = self.get_angle(self, food)
+        self.fitness = self.body.length() * LENGTH_WEIGHT + distance_from_food * DISTANCE_WEIGHT + (ANGLE_WEIGHT * angle)
+
+
+    def get_angle(self, agent, food):
+        head = np.array([agent.body.get_x(), agent.body.get_y()])
+
+        segment = np.array([agent.body.body[0].get_x(), agent.body.body[0].get_y()])
+
+        food = np.array([food.get_x(), food.get_y()])
+
+        snake_direction = head - segment
+        food_direction = food - head
+
+        a = snake_direction / np.linalg.norm(snake_direction)
+        b = food_direction / np.linalg.norm(food_direction)
+
+        return math.atan2(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]) / math.pi

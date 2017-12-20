@@ -57,15 +57,7 @@ class GeneticAlgorithm():
             for j, layer in enumerate(elem):
                 for k in range(len(layer)):
                     if random.random() < self.mutate_chance:
-                        print(self.mutation_factor(), elems[i][j][k], elems[i][j][k] * self.mutation_factor())
                         elems[i][j][k] *= self.mutation_factor()
-
-        # for l in network.weights():
-            # w, b = l[0], l[1]
-            # print('network.weights:', w.shape, b.shape)
-
-        # new_network = copy.copy(network)
-        # new_network.set_weights(elems)
 
         new_network = TFLearnNN(network.dimensions, elems)
         return new_network
@@ -79,24 +71,24 @@ class GeneticAlgorithm():
         print('init_evolved:',len(evolved))
 
         # randomly pick from rest
-        for network in networks[self.evolve_size:]:
-            if random.random() < self.rand_select:
-                evolved.append(network)
+        # for network in networks[self.evolve_size:]:
+            # if random.random() < self.rand_select:
+                # evolved.append(network)
         print('post_random_add:',len(evolved))
-
-        # mutate subset of evolved
-        for i, network in enumerate(evolved):
-            if random.random() < self.mutate_chance:
-                evolved[i] = self.mutate(network)
-                #evolved.append(TFLearnNN(network.dimensions))
 
         # randomly pick 2 from [evolve_size:] and breed remaining pop_size - len(evolved)
         while len(evolved) < self.pop_size:
             parentA = random.randint(0, self.evolve_size-1)
-            parentB = random.randint(0, self.evolve_size-1)
+            parentB = random.randint(0, len(networks)-1)
             if parentA == parentB:
                 continue
-            evolved.append(self.breed(evolved[parentA], evolved[parentB]))
+            evolved.append(self.breed(networks[parentA], networks[parentB]))
         print('post_breed:',len(evolved))
+
+        # mutate subset of evolved
+        for i, network in enumerate(evolved[self.evolve_size:]):
+            if random.random() < self.mutate_chance:
+                evolved[i+self.evolve_size] = self.mutate(network)
+                #evolved.append(TFLearnNN(network.dimensions))
 
         return evolved

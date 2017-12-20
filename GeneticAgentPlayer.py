@@ -29,13 +29,19 @@ class GeneticAgentPlayer(Player):
         self.agents = [GAAgent(self.speed, brain) for brain in brains]
         self.remaining_agents = self.agents[:]
 
+    def should_reset(self):
+        poor_agents = [a for a in self.agents if a.body.length() == INIT_SNAKE_LENGTH + 1]
+        return len(poor_agents) == len(self.agents)
+
     def evolve_agents(self):
+        if self.should_reset():
+            self.build_agents()
+            print('No good snakes, recreating')
+            return
+
         current_brains = [(agent.fitness, agent.brain) for agent in self.agents]
         evolved_brains = self.ga.evolve_population(current_brains)
         self.build_agents(evolved_brains)
-
-        #current_brains = [agent.brain for agent in self.agents]
-        #self.build_agents([TFLearnNN((5, 25, 1))])
 
     def consumption_check(self, snake):
         if collision(snake, self.food_stack[0]):
@@ -130,7 +136,6 @@ class GeneticAgentPlayer(Player):
             i += 1
 
         if self.steps == 200 or len(self.remaining_agents) == 0:
-            print(self.remaining_agents, self.agents)
             self.evolve_agents()
 
             self.steps = 0
@@ -149,7 +154,7 @@ class GeneticAgentPlayer(Player):
     def agent_step(self, agent):
         #input_data = self.get_input_data(agent)
 
-        #agent.set_fitness(self.food_stack[0])
+        agent.set_fitness(self.food_stack[0])
 
         # NN will take 8 inputs and reproduce 4 outputs
         #movement = agent.brain.get_movement(input_data)
@@ -179,4 +184,3 @@ class GeneticAgentPlayer(Player):
         b = food_direction / np.linalg.norm(food_direction)
 
         return math.atan2(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]) / math.pi
-
