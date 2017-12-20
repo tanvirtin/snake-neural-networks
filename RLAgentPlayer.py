@@ -44,20 +44,36 @@ class RLAgentPlayer(Player):
             food.draw(self.screen)
 
     def get_angle_2(self):
-        x1 = self.agent.body.get_x()
-        y1 = self.agent.body.get_y()
 
-        x2 = self.food_stack[0].get_x()
-        y2 = self.food_stack[0].get_y()
+        head_x = self.agent.body.get_x()
+        head_y = self.agent.body.get_y()
 
-        x1 /= np.linalg.norm(np.array([x1, y1]))
-        y1 /= np.linalg.norm(np.array([x1, y1]))
+        segment_x = self.agent.body.body[0].get_x()
+        segment_y = self.agent.body.body[0].get_y()
 
-        x2 /= np.linalg.norm(np.array([x2, y2]))
-        y2 /= np.linalg.norm(np.array([x2, y2]))
+        food_x = self.food_stack[0].get_x()
+        food_y = self.food_stack[0].get_y()
+
+        snake_direction = np.array([head_x, head_y]) - np.array([segment_x, segment_y])
+        food_direction = np.array([food_x, food_y]) - np.array([head_x, head_y])
+
+        a = snake_direction / np.linalg.norm(snake_direction)
+        b = food_direction / np.linalg.norm(food_direction)
+
+        # x1 = self.agent.body.get_x()
+        # y1 = self.agent.body.get_y()
+        #
+        # x2 = self.food_stack[0].get_x()
+        # y2 = self.food_stack[0].get_y()
+        #
+        # x1 /= np.linalg.norm(np.array([x1, y1]))
+        # y1 /= np.linalg.norm(np.array([x1, y1]))
+        #
+        # x2 /= np.linalg.norm(np.array([x2, y2]))
+        # y2 /= np.linalg.norm(np.array([x2, y2]))
 
         # (2 * math.pi is to normalize the angle)
-        return math.atan2(x1 * y2 - y1 * x2, x1 * x2 + y1 * y2) / math.pi
+        return math.atan2(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]) / math.pi
 
     def get_angle(self):
         x1 = self.agent.body.get_x()
@@ -106,7 +122,7 @@ class RLAgentPlayer(Player):
         coll_pred = self.agent.body.self_collision_prediction()
         # get distance from the snake and food
         distance_from_food = self.agent.body.distance_from_food(self.food_stack[0])
-        angle = self.get_angle()
+        angle = self.get_angle_2()
         return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
     def train_agent(self):
@@ -148,14 +164,14 @@ class RLAgentPlayer(Player):
             # end of each game a new body is created
             self.agent.create_new_body()
             self.spawn_food()
-            print("Steps taken: {}".format(steps))
-            print("Right Directions {}".format(right_direction))
-            print("Wrong Directions {}".format(wrong_direction))
-            print("Wrong Turns {}".format(wrong_turns))
+            # print("Steps taken: {}".format(steps))
+            # print("Right Directions {}".format(right_direction))
+            # print("Wrong Directions {}".format(wrong_direction))
+            # print("Wrong Turns {}".format(wrong_turns))
 
-        new_length = (wrong_direction * 2) + wrong_turns
-
-        training_data = self.process_training_data(training_data, right_direction, wrong_direction)
+        # new_length = (wrong_direction * 2) + wrong_turns
+        #
+        # training_data = self.process_training_data(training_data, right_direction, wrong_direction)
 
         self.agent.learn(training_data)
 
@@ -220,15 +236,13 @@ class RLAgentPlayer(Player):
             # depending on previous observation what move should i generate
             predictions.append(self.agent.brain.predict(nn_data.reshape(-1, 5, 1)))
 
-        print(predictions)
-
         action = np.argmax(np.array(predictions)) - 1
 
         self.map_keys(action)
 
 
     def game_loop(self, key_input = None):
-        while not keyboard.is_pressed("q"):
+        while True:
             pygame.event.pump()
 
             self.screen.fill(self.background_color)
@@ -242,7 +256,7 @@ class RLAgentPlayer(Player):
 
             end = self.agent.body.draw(self.screen, self.go_through_boundary)
 
-            # if snake doesnt do anything or the snake died then kill the game
+            # #if snake doesnt do anything or the snake died then kill the game
             # if self.kill_idle_game() or end:
             #     return
 

@@ -3,13 +3,14 @@ import time
 import sys
 
 def main():
-    game = SnakeGame()
+    game = SnakeGame(True)
 
     game.prepare_players()
 
     while True:
         end = game.game_loop()
         #time.sleep(0.05)
+
 
     # while not keyboard.is_pressed("q"):
     #     # if keyboard.is_pressed("up"):

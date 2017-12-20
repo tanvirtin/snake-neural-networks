@@ -32,4 +32,4 @@ class RLAgent(object):
     def learn(self, training_data):
         inputs = np.array([i[0] for i in training_data]).reshape(-1, 5, 1)
         outputs = np.array([i[1] for i in training_data]).reshape(-1, 1)
-        self.brain.fit(inputs, outputs, n_epoch = 20, shuffle = True)
+        self.brain.fit(inputs, outputs, n_epoch = 3, shuffle = True)
