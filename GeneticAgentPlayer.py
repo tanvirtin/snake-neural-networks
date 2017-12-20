@@ -10,6 +10,8 @@ from GAAgent import GAAgent
 from pygame.locals import *
 import math
 
+from TFLearnNN import TFLearnNN
+
 class GeneticAgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
@@ -24,19 +26,16 @@ class GeneticAgentPlayer(Player):
 
     def build_agents(self, brains = None):
         brains = self.ga.init_population() if not brains else brains
-
         self.agents = [GAAgent(self.speed, brain) for brain in brains]
-        # TODO: maybe more into agents constructor?
-        for agent in self.agents:
-            for j in range(2):
-                agent.body.grow()
-
         self.remaining_agents = self.agents[:]
 
     def evolve_agents(self):
         current_brains = [(agent.fitness, agent.brain) for agent in self.agents]
         evolved_brains = self.ga.evolve_population(current_brains)
         self.build_agents(evolved_brains)
+
+        #current_brains = [agent.brain for agent in self.agents]
+        #self.build_agents([TFLearnNN((5, 25, 1))])
 
     def consumption_check(self, snake):
         if collision(snake, self.food_stack[0]):
@@ -61,34 +60,34 @@ class GeneticAgentPlayer(Player):
     def map_keys(self, pred, agent):
         if agent.body.current_direction == "right":
             # left from current point of view
-            if pred == 0:
+            if pred == -1:
                 agent.body.change_direction("up")
             # right from current point of view
-            elif pred == 2:
+            elif pred == 1:
                 agent.body.change_direction("down")
 
         elif agent.body.current_direction == "left":
             # left from current point of view
-            if pred == 0:
+            if pred == -1:
                 agent.body.change_direction("down")
             # right from current point of view
-            elif pred == 2:
+            elif pred == 1:
                 agent.body.change_direction("up")
 
         elif agent.body.current_direction == "up":
             # left from current point of view
-            if pred == 0:
+            if pred == -1:
                 agent.body.change_direction("left")
             # right from current point of view
-            elif pred == 2:
+            elif pred == 1:
                 agent.body.change_direction("right")
 
         elif agent.body.current_direction == "down":
             # left from current point of view
-            if pred == 0:
+            if pred == -1:
                 agent.body.change_direction("right")
             # right from current point of view
-            elif pred == 2:
+            elif pred == 1:
                 agent.body.change_direction("left")
 
 
@@ -127,6 +126,7 @@ class GeneticAgentPlayer(Player):
             i += 1
 
         if self.steps == 200 or len(self.remaining_agents) == 0:
+            print(self.remaining_agents, self.agents)
             self.evolve_agents()
 
             self.steps = 0
@@ -143,13 +143,23 @@ class GeneticAgentPlayer(Player):
         return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
     def agent_step(self, agent):
-        input_data = self.get_input_data(agent)
+        #input_data = self.get_input_data(agent)
 
-        agent.set_fitness(self.food_stack[0])
+        #agent.set_fitness(self.food_stack[0])
 
         # NN will take 8 inputs and reproduce 4 outputs
-        movement = agent.brain.get_movement(input_data)
+        #movement = agent.brain.get_movement(input_data)
 
+        predictions = []
+        for action in range(-1, 2):
+            nn_data = self.get_input_data(agent)
+            nn_data.append(action)
+            nn_data = np.array(nn_data)
+            # depending on previous observation what move should i generate
+            predictions.append(agent.brain.get_movement(nn_data))
+
+        movement = np.argmax(np.array(predictions)) - 1
+        print(movement, predictions)
         self.map_keys(movement, agent)
 
     def get_angle(self, agent, food):

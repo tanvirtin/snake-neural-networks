@@ -8,13 +8,22 @@ class TFNN:
         #dimensions = [tf.constant(dim, dtype=tf.int32) for dim in dimensions]
         self.input_size = dimensions[0]
         self.output_size = dimensions[-1]
-        self.dimensions = list(zip(dimensions[:-1], dimensions[1:]))
-        self.weights = [self.init_weights(dim) for dim in self.dimensions]
+        self.dimensions = dimensions
+        dimension_pairs = list(zip(dimensions[:-1], dimensions[1:]))
+        self.weights = [self.init_weights(dim, weights) for dim in dimension_pairs]
 
         self.init_session()
 
-    def init_weights(self, shape):
-        return tf.Variable(tf.random_normal(shape, stddev=0.01)).initialized_value()
+        # set weights if provided
+        if weights is not None:
+            self.set_weights(weights)
+
+    def init_weights(self, shape, weights = None):
+        weights = tf.random_normal(shape, stddev=0.01) if not weights else weights
+        return tf.Variable(weights).initialized_value()
+
+    def weights(self):
+        return [weight.eval() for weight in self.weights]
 
     def init_session(self):
         self.sess = tf.Session()

@@ -6,6 +6,9 @@ from keras.models import Model
 from keras.layers import Dense
 from keras.models import Sequential
 
+# import tflearn
+# from tflearn.layers.core import input_data, fully_connected
+
 class TFLearnNN:
     def __init__(self, dimensions, weights = None):
         #self.input_size = dimensions[0]
@@ -21,6 +24,14 @@ class TFLearnNN:
     def shape(self):
         return np.array(self.weights).shape
 
+    # def set_weights(self, weights):
+        # if len(self.layers) != len(weights):
+            # print("ERROR: Weight mismatch")
+            # return
+        # for w, l in zip(weights, self.layers):
+            # self.model.set_weights(l.W, w[0])
+            # self.model.set_weights(l.b, w[1])
+
     def set_weights(self, weights):
         if len(self.model.layers) != len(weights):
             print("ERROR: Weight mismatch")
@@ -28,6 +39,9 @@ class TFLearnNN:
         for w, l in zip(weights, self.model.layers):
             l.set_weights(w)
 
+    # def weights(self):
+        # return [[self.model.get_weights(l.W), self.model.get_weights(l.b)]
+                    # for l in self.layers]
     def weights(self):
         return [layer.get_weights() for layer in self.model.layers]
 
@@ -44,9 +58,16 @@ class TFLearnNN:
         # return tflearn.DNN(dense2,tensorboard_verbose=0)
 
         model = Sequential()
-        model.add(Dense(self.dimensions[1], input_dim = self.dimensions[0], activation = 'sigmoid', bias_initializer='random_normal'))
-        model.add(Dense(self.dimensions[2], activation = 'sigmoid'))
-        
+        model.add(Dense(self.dimensions[1], input_dim = self.dimensions[0], activation = 'sigmoid', kernel_initializer='random_uniform', bias_initializer='random_uniform'))
+        model.add(Dense(self.dimensions[2], activation = 'sigmoid', kernel_initializer='random_uniform', bias_initializer='random_uniform'))
+
+        # input_layer = input_data(shape=[None, self.dimensions[0]], name="input")
+        # dense1 = fully_connected(input_layer, self.dimensions[1], activation="relu")
+        # dense2 = fully_connected(dense1, self.dimensions[2], activation="linear")
+
+        # model = tflearn.DNN(dense2)
+        # layers = [dense1, dense2]
+
         return model
 
     def run(self, X):
@@ -54,5 +75,5 @@ class TFLearnNN:
 
     def get_movement(self, trX):
         trX = np.array(trX).reshape(-1, len(trX))
-        res = self.run(trX)[0]
-        return np.argmax(res)
+        return self.run(trX)[0]
+        #return np.argmax(res)

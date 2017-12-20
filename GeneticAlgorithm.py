@@ -2,20 +2,19 @@ from NeuralNetwork import NeuralNetwork
 from TFNN import TFNN
 from TFLearnNN import TFLearnNN
 import random
-import copy
 import numpy as np
 
 MUTATE_FACTOR = 1 + ((random.random() - 0.5) * 3 + (random.random() - 0.5))
 
 class GeneticAlgorithm():
-    def __init__(self, pop_size=10, evolve_size=4, rand_select=0.2, mutate_chance=0.3):
+    def __init__(self, pop_size=20, evolve_size=5, rand_select=0.2, mutate_chance=0.3):
         self.pop_size = pop_size
         self.evolve_size = evolve_size
         self.rand_select = rand_select
         self.mutate_chance = mutate_chance
 
     def init_population(self):
-        return [TFLearnNN((4, 25, 3)) for _ in range(self.pop_size)]
+        return [TFLearnNN((5, 25, 1)) for _ in range(self.pop_size)]
         #return [NeuralNetwork((8, 10, 4)) for _ in range(self.pop_size)]
         #return [TFNN((8, 10, 4)) for _ in range(self.pop_size)]
 
@@ -42,29 +41,30 @@ class GeneticAlgorithm():
 
             weights.append([n_weights, n_bias])
 
-        new_network = copy.copy(a)
-        new_network.set_weights(weights)
+        print('breeding')
+        new_network = TFLearnNN(a.dimensions, a.weights())
         # print('a_weights', a.weights())
         # print('b_weights', b.weights())
         # print('new_weights', weights)
         return new_network
 
     def mutate(self, network):
+        print('mutating')
         elems = network.weights()
-        #print('pre_weight', elems)
         for i, elem in enumerate(elems):
             for j, layer in enumerate(elem):
-                #mutated_count = 0
                 for k in range(len(layer)):
                     if random.random() < self.mutate_chance:
-                        #print('pre', layer[i])
                         elems[i][j][k] *= MUTATE_FACTOR
-                        #mutated_count += 1
-                        #print('post', layer[i])
-                #print("mutated_count:", mutated_count)
-        #print('post_weight', elems)
-        new_network = copy.copy(network)
-        new_network.set_weights(elems)
+
+        # for l in network.weights():
+            # w, b = l[0], l[1]
+            # print('network.weights:', w.shape, b.shape)
+
+        # new_network = copy.copy(network)
+        # new_network.set_weights(elems)
+
+        new_network = TFLearnNN(network.dimensions, elems)
         return new_network
 
     def evolve_population(self, fitness_agents):
@@ -85,6 +85,7 @@ class GeneticAlgorithm():
         for i, network in enumerate(evolved):
             if random.random() < self.mutate_chance:
                 evolved[i] = self.mutate(network)
+                #evolved.append(TFLearnNN(network.dimensions))
 
         # randomly pick 2 from [evolve_size:] and breed remaining pop_size - len(evolved)
         while len(evolved) < self.pop_size:
