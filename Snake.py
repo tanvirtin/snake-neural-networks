@@ -4,6 +4,7 @@ import math
 from collision_checker import *
 import copy
 import numpy as np
+from util import *
 
 # Snake is a SnakeSegment itself and also contains other SnakeSegments
 class Snake(SnakeSegment):
@@ -51,20 +52,15 @@ class Snake(SnakeSegment):
 
         return snake
 
-    def deepcopy(self):
-        d_attrs = ['head_size', 'score', 'current_direction', 'coordinates', 'previous_direction']
-        new_snake = copy.copy(self)
-        print(d_attrs)
-        for attr in d_attrs:
-            print(attr)
-            new_snake.attr = copy.deepcopy(getattr(self, attr))
+    def copy(self):
+        new_snake = Snake(WINDOW_SIZE[0]/ 2, WINDOW_SIZE[0]/ 2, self.speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
+        for j in range(2):
+            new_snake.grow()
         return new_snake
-
 
     def self_collision_prediction_helper(self, direction):
         # a deep copy of self needs to be made to prevent pointer to self and changing self's attributes
-        #snake_clone = self.deepcopy()
-        snake_clone = copy.deepcopy(self)
+        snake_clone = self.copy()
         # the direciton is changed
         snake_clone.change_direction(direction)
         # new x and y coordinate of the snake is obtained
