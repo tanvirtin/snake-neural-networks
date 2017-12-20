@@ -10,10 +10,10 @@ class KerasNeuralNetwork(object):
         self.model.compile(optimizer = 'rmsprop', loss = 'mse')
 
         try:
-            self.loaded_model = open("./rl-learning-data/rl-model.json", "r")
+            self.loaded_model = open("./keras-nn-data/rl-model.json", "r")
             if self.loaded_model:
-                self.model.load_weights("./rl-learning-data/rl-model.h5")
-                print("Weights of the model is loaded from disk!")
+                self.model.load_weights("./keras-nn-data/rl-model.h5")
+                print("The network weights have been loaded from disk...")
         except:
             pass
 
@@ -28,9 +28,9 @@ class KerasNeuralNetwork(object):
         self.model.fit(inputs, outputs, epochs = num_epochs, batch_size = num_batches)
         model_json = self.model.to_json()
 
-        with open("./rl-learning-data/rl-model.json", "w") as json_file:
+        with open("./keras-nn-data/rl-model.json", "w") as json_file:
             json_file.write(self.model.to_json())
 
-        self.model.save_weights("./rl-learning-data/rl-model.h5")
+        self.model.save_weights("./keras-nn-data/rl-model.h5")
 
-        print("Model is saved to disk!")
+        print("Model is saved to disk...")

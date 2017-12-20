@@ -15,7 +15,7 @@ class RLAgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
         # takes in x, y of the snake and the speed of the snake
-        self.agent = RLAgent(speed)
+        self.agent = RLAgent(speed, True)
         self.go_through_boundary = True
         # total number of games required to train
         self.total_training_games = 10
@@ -24,10 +24,11 @@ class RLAgentPlayer(Player):
         self.frames = 0
         # try to load the numpy data, if not possible then set the training_data to an empty list
         try:
-            print("Training data couldn't be loaded from disk...")
+            print("Training data loaded from disk...")
             # loaded training_data needs to be converted into a list
             self.training_data = np.load("./rl-learning-data/rl-data.npy").tolist()
         except:
+            print("Training data couldn't be loaded from disk...")
             self.training_data = []
         self.game_num = 0
 
