@@ -16,10 +16,10 @@ class RLAgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
         # takes in x, y of the snake and the speed of the snake
-        self.agent = RLAgent(speed)
+        self.agent = RLAgent(speed, True)
         self.go_through_boundary = True
         # total number of games required to train
-        self.total_training_games = 100
+        self.total_training_games = 10
         # number of frames rendered to collect the data
         self.goal_steps = 2000
         self.frames = 0
@@ -193,7 +193,7 @@ class RLAgentPlayer(Player):
             nn_data.append(action)
             nn_data = np.array(nn_data)
             # depending on previous observation what move should i generate
-            predictions.append(self.agent.brain.predict(nn_data.reshape(-1, 5, 1)))
+            predictions.append(self.agent.predict(nn_data))
 
         action = np.argmax(np.array(predictions)) - 1
 
