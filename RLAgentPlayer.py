@@ -112,13 +112,16 @@ class RLAgentPlayer(Player):
         angle = self.get_angle()
         return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
-    def train_agent(self):
+
+    def gather_training_data(self):
         for _ in range(self.total_training_games):
             self.one_game_iteration()
 
         print("Training data saved to disk...")
         # save the numpy data
         np.save("./rl-learning-data/rl-data.npy", self.training_data)
+
+    def train_agent(self):
         print("Begining to train with {} data".format(len(self.training_data)))
         self.agent.learn(self.training_data)
 
@@ -228,7 +231,7 @@ class RLAgentPlayer(Player):
             #if snake doesnt do anything or the snake died then kill the game
             if end:
                 # when the snake dies
-                print("Died after turning its head to -> {}".format(self.agent.body.current_direction))
+                print("Died after turning its head -> {}".format(self.agent.body.current_direction))
                 time.sleep(1)
                 return
 

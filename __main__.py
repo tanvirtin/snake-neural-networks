@@ -5,7 +5,9 @@ import sys
 def main():
     game = SnakeGame(True)
 
-    #game.prepare_players()
+    game.gather_data()
+
+    game.train_agent()
 
     game.game_loop()
 
