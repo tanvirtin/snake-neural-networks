@@ -1,6 +1,5 @@
 import pygame
 from GameObj import GameObj
-import random
 
 class SnakeSegment(GameObj):
     def __init__(self, x, y, speed, boundary_x, boundary_y, head = False, default_direction = "up"):

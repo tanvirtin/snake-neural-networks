@@ -7,9 +7,9 @@ def main():
 
     game.gather_data()
 
-    game.train_agent()
+    #game.train_agent()
 
-    game.game_loop()
+    # game.game_loop()
 
 if __name__ == "__main__":
     main()
