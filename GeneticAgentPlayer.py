@@ -163,7 +163,6 @@ class GeneticAgentPlayer(Player):
             predictions.append(agent.brain.get_movement(nn_data))
 
         movement = np.argmax(np.array(predictions)) - 1
-        print(movement, predictions)
         self.map_keys(movement, agent)
 
     def get_angle(self, agent, food):

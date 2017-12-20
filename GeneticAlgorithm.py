@@ -4,10 +4,8 @@ from TFLearnNN import TFLearnNN
 import random
 import numpy as np
 
-MUTATE_FACTOR = 1 + ((random.random() - 0.5) * 3 + (random.random() - 0.5))
-
 class GeneticAlgorithm():
-    def __init__(self, pop_size=20, evolve_size=5, rand_select=0.2, mutate_chance=0.3):
+    def __init__(self, pop_size=20, evolve_size=5, rand_select=0.2, mutate_chance=0.8):
         self.pop_size = pop_size
         self.evolve_size = evolve_size
         self.rand_select = rand_select
@@ -48,6 +46,10 @@ class GeneticAlgorithm():
         # print('new_weights', weights)
         return new_network
 
+
+    def mutation_factor(self):
+        return 1 + ((random.random() - 0.5) * 3 + (random.random() - 0.5))
+
     def mutate(self, network):
         print('mutating')
         elems = network.weights()
@@ -55,7 +57,8 @@ class GeneticAlgorithm():
             for j, layer in enumerate(elem):
                 for k in range(len(layer)):
                     if random.random() < self.mutate_chance:
-                        elems[i][j][k] *= MUTATE_FACTOR
+                        print(self.mutation_factor(), elems[i][j][k], elems[i][j][k] * self.mutation_factor())
+                        elems[i][j][k] *= self.mutation_factor()
 
         # for l in network.weights():
             # w, b = l[0], l[1]

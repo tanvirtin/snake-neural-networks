@@ -58,8 +58,23 @@ class TFLearnNN:
         # return tflearn.DNN(dense2,tensorboard_verbose=0)
 
         model = Sequential()
-        model.add(Dense(self.dimensions[1], input_dim = self.dimensions[0], activation = 'sigmoid', kernel_initializer='random_uniform', bias_initializer='random_uniform'))
-        model.add(Dense(self.dimensions[2], activation = 'sigmoid', kernel_initializer='random_uniform', bias_initializer='random_uniform'))
+        model.add(
+                Dense(
+                    self.dimensions[1],
+                    input_dim = self.dimensions[0],
+                    activation = 'sigmoid',
+                    kernel_initializer=keras.initializers.RandomUniform(minval=-1, maxval=1),
+                    bias_initializer=keras.initializers.RandomUniform(minval=-1, maxval=1),
+                )
+        )
+        model.add(
+            Dense(
+                self.dimensions[2],
+                activation = 'sigmoid',
+                kernel_initializer=keras.initializers.RandomUniform(minval=-1, maxval=1),
+                bias_initializer=keras.initializers.RandomUniform(minval=-1, maxval=1),
+            )
+        )
 
         # input_layer = input_data(shape=[None, self.dimensions[0]], name="input")
         # dense1 = fully_connected(input_layer, self.dimensions[1], activation="relu")
