@@ -20,14 +20,19 @@ class RLAgentPlayer(Player):
         # total number of games required to train
         self.idle_frames = 0
         self.total_steps = 0
-        # try to load the numpy data, if not possible then set the training_data to an empty list
-        try:
-            # loaded training_data needs to be converted into a list
-            self.training_data = np.load("./rl-learning-data/rl-data.npy").tolist()
-            print("Training data loaded from disk...")
-        except:
-            print("Training data couldn't be loaded from disk...")
-            self.training_data = []
+
+        # # try to load the numpy data, if not possible then set the training_data to an empty list
+        # try:
+        #     # loaded training_data needs to be converted into a list
+        #     self.training_data = np.load("./rl-learning-data/rl-data.npy").tolist()
+        #     print("Training data loaded from disk...")
+        # except:
+        #     print("Training data couldn't be loaded from disk...")
+        #     self.training_data = []
+
+        # uncomment this if you decide to load data
+        self.training_data = []
+
     def consumption_check(self):
         if collision(self.agent.body, self.food_stack[0]):
             return True
@@ -112,9 +117,11 @@ class RLAgentPlayer(Player):
         for _ in tqdm(range(self.total_training_games)):
             self.one_game_iteration()
 
-        print("Training data saved to disk...")
-        # save the numpy data
-        np.save("./rl-learning-data/rl-data.npy", self.training_data)
+        # uncomment to save the training data
+
+        # print("Training data saved to disk...")
+        # # save the numpy data
+        # np.save("./rl-learning-data/rl-data.npy", self.training_data)
 
         average_steps = self.total_steps / self.total_training_games
 

@@ -12,14 +12,14 @@ class KerasNeuralNetwork(object):
         self.model.add(Dense(dimensions[-1], activation = 'sigmoid'))
         self.model.compile(optimizer = 'rmsprop', loss = 'mse')
 
-        if not pre_trained:
-            try:
-                self.loaded_model = open("./keras-nn-data/rl-model.json", "r")
-                if self.loaded_model:
-                    self.model.load_weights("./keras-nn-data/rl-model.h5")
-                    print("The network weights have been loaded from disk...")
-            except:
-                pass
+        # if not pre_trained:
+        #     try:
+        #         self.loaded_model = open("./keras-nn-data/rl-model.json", "r")
+        #         if self.loaded_model:
+        #             self.model.load_weights("./keras-nn-data/rl-model.h5")
+        #             print("The network weights have been loaded from disk...")
+        #     except:
+        #         pass
 
         # if pre_trained is mentioned
         if pre_trained:
@@ -43,9 +43,9 @@ class KerasNeuralNetwork(object):
         self.model.fit(inputs, outputs, epochs = num_epochs, batch_size = num_batches)
         model_json = self.model.to_json()
 
-        with open("./keras-nn-data/rl-model.json", "w") as json_file:
-            json_file.write(self.model.to_json())
-
-        self.model.save_weights("./keras-nn-data/rl-model.h5")
-
-        print("Model is saved to disk...")
+        # with open("./keras-nn-data/rl-model.json", "w") as json_file:
+        #     json_file.write(self.model.to_json())
+        #
+        # self.model.save_weights("./keras-nn-data/rl-model.h5")
+        #
+        # print("Model is saved to disk...")

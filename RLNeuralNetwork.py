@@ -8,29 +8,48 @@ class NeuralNetwork(object):
 
 	# initialise the neural network
 	def __init__(self, dimensions, learningRate):
-		try:
-			self.layers = np.load("./nn-data/nn-weights.npy")
-			print("The network weights have been loaded from disk...")
-		except:
-			print("The network weights couldn't be loaded from disk...")
-			# # this array will contain all the layers of the neural network
-			self.layers = []
-			# we construct the hidden layers
-			for i in range(1, len(dimensions)):
-				hiddenLayer = []
-				# number of weight arrays will be determined by the number of neurons
-				# in the current layer
-				for j in range(dimensions[i]):
-					# number of weights per neuron is equal to the number of nodes
-					# in the previous layer
-					# very important for the weights to be assigned with random values from -1 to +1
-					# as our algorithm adds up the change in weight
-					hiddenLayer.append(np.random.uniform(-1, 1, dimensions[i - 1]))
+		# try:
+		# 	self.layers = np.load("./nn-data/nn-weights.npy")
+		# 	print("The network weights have been loaded from disk...")
+		# except:
+		# 	print("The network weights couldn't be loaded from disk...")
+		# 	# # this array will contain all the layers of the neural network
+		# 	self.layers = []
+		# 	# we construct the hidden layers
+		# 	for i in range(1, len(dimensions)):
+		# 		hiddenLayer = []
+		# 		# number of weight arrays will be determined by the number of neurons
+		# 		# in the current layer
+		# 		for j in range(dimensions[i]):
+		# 			# number of weights per neuron is equal to the number of nodes
+		# 			# in the previous layer
+		# 			# very important for the weights to be assigned with random values from -1 to +1
+		# 			# as our algorithm adds up the change in weight
+		# 			hiddenLayer.append(np.random.uniform(-1, 1, dimensions[i - 1]))
+        #
+		# 		# make the hiddenLayer into a np array
+		# 		hiddenLayer = np.array(hiddenLayer)
+        #
+		# 		self.layers.append(hiddenLayer)
 
-				# make the hiddenLayer into a np array
-				hiddenLayer = np.array(hiddenLayer)
+		# # this array will contain all the layers of the neural network
+		self.layers = []
+		# we construct the hidden layers
+		for i in range(1, len(dimensions)):
+			hiddenLayer = []
+			# number of weight arrays will be determined by the number of neurons
+			# in the current layer
+			for j in range(dimensions[i]):
+				# number of weights per neuron is equal to the number of nodes
+				# in the previous layer
+				# very important for the weights to be assigned with random values from -1 to +1
+				# as our algorithm adds up the change in weight
+				hiddenLayer.append(np.random.uniform(-1, 1, dimensions[i - 1]))
 
-				self.layers.append(hiddenLayer)
+			# make the hiddenLayer into a np array
+			hiddenLayer = np.array(hiddenLayer)
+
+			self.layers.append(hiddenLayer)
 
 		# learning rate
 		self.learningRate = learningRate
@@ -99,9 +118,9 @@ class NeuralNetwork(object):
 				for j in tqdm(range(len(batches[i]))):
 					self.train(batches[i][j][0], batches[i][j][1])
 
-		np.save("./nn-data/nn-weights.npy", self.layers)
-
-		print("The network weights have been loaded from disk...")
+		# np.save("./nn-data/nn-weights.npy", self.layers)
+        #
+		# print("The network weights have been loaded from disk...")
 
 
 

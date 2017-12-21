@@ -3,8 +3,6 @@ import time
 import argparse
 
 def main():
-    choices = -1
-
     while True:
         pick = input("1. Brute force Reinforcement Algorithm\n2. Genetic Algorithm\n3. Quit\n-> ")
         # RL

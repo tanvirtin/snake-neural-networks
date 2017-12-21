@@ -1,6 +1,5 @@
 __pycache__
 datasets
-keras-nn-data/
 models_per_datasets/
 rl-learning-data/
 test-result.txt
