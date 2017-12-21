@@ -26,5 +26,4 @@ class SnakeGame(object):
             self.player.gather_training_data()
 
     def train_agent(self):
-        if self.reinforcement_learning:
-            self.player.train_agent()
+        self.player.train_agent()

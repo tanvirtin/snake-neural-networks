@@ -16,30 +16,25 @@ class GeneticAgentPlayer(Player):
         # needs to be saved as we will create a new population using the same speed
         self.ga = GeneticAlgorithm()
         self.speed = speed
-        self.steps = 0
         self.high_score = 0
         self.go_through_boundary = False
-        self.generation_num = 1
-        self.build_agents()
 
     def build_agents(self, brains = None):
         brains = self.ga.init_population() if not brains else brains
-        self.agents = [GAAgent(self.speed, brain) for brain in brains]
-        self.remaining_agents = self.agents[:]
+        return [GAAgent(self.speed, brain) for brain in brains]
 
-    def should_reset(self):
-        poor_agents = [a for a in self.agents if a.body.length() == INIT_SNAKE_LENGTH + 1]
-        return len(poor_agents) == len(self.agents)
+    def should_reset(self, prev_agents):
+        poor_agents = [a for a in prev_agents if a.body.length() == INIT_SNAKE_LENGTH + 1]
+        return len(poor_agents) == len(prev_agents)
 
-    def evolve_agents(self):
-        if self.should_reset():
-            self.build_agents()
+    def evolve_agents(self, prev_agents):
+        if self.should_reset(prev_agents):
             print('No good snakes, recreating')
-            return
+            return self.build_agents()
 
-        current_brains = [(agent.fitness, agent.brain) for agent in self.agents]
+        current_brains = [(agent.fitness, agent.brain) for agent in prev_agents]
         evolved_brains = self.ga.evolve_population(current_brains)
-        self.build_agents(evolved_brains)
+        return self.build_agents(evolved_brains)
 
     def consumption_check(self, snake):
         if collision(snake, self.food_stack[0]):
@@ -48,14 +43,14 @@ class GeneticAgentPlayer(Player):
             return False
 
 
-    def display_info(self, high_score):
+    def display_info(self, high_score, current_generation):
         pygame.font.init()
 
         default_font = pygame.font.get_default_font()
         font_renderer = pygame.font.Font(default_font, 10)
 
         # To create a surface containing `Some Text`
-        label = font_renderer.render("Generation - {}, High score: {}".format(self.generation_num, high_score), 1, (0,0,0)) # RGB Color
+        label = font_renderer.render("Generation - {}, High score: {}".format(current_generation, high_score), 1, (0,0,0)) # RGB Color
         self.screen.blit(label, (0,0))
 
         # draw the food
@@ -95,32 +90,63 @@ class GeneticAgentPlayer(Player):
             elif pred == 1:
                 agent.body.change_direction("left")
 
-    def game_loop(self):
-        while True:
-            self.game_iteration()
+    def save_best_agent(self, agents):
+        current_brains = [(agent.fitness, agent.brain) for agent in agents]
+        self.ga.save_best_agent(current_brains)
 
-    def game_iteration(self, key_input = None):
-        self.steps += 1
+    def game_loop(self, num_iterations = 100):
+        # create agent from saved model
+        networks = [self.ga.load_model()]
+        for iteration in range(1, num_iterations+1):
+            agents = self.build_agents(networks)
+            remaining_agents = agents[:]
 
+            print('pre game_loop:',len(remaining_agents))
+            while len(remaining_agents) != 0:
+                self.game_iteration(remaining_agents, iteration)
+                print('game_loop:',len(remaining_agents))
+            print("On game {}".format(iteration))
+
+    def train_agent(self, num_iterations = 100):
+        # build initial agents
+        agents = self.build_agents()
+        for iteration in range(1, num_iterations+1):
+            remaining_agents = agents[:]
+
+            self.evolve_loop(remaining_agents, iteration)
+
+            # evolve agents after loop
+            agents = self.evolve_agents(agents)
+            print("On generation {}".format(iteration))
+        # save the model of the best agent
+        print('Saving best agent')
+        self.save_best_agent(agents)
+
+    def evolve_loop(self, remaining_agents, current_generation, num_steps = 200):
+        for steps in range(num_steps):
+            self.game_iteration(remaining_agents, current_generation)
+            if len(remaining_agents) == 0:
+                break
+
+    def game_iteration(self, remaining_agents, current_generation):
         pygame.event.pump()
 
         self.screen.fill(self.background_color)
 
-        self.display_info(self.high_score)
+        self.display_info(self.high_score, current_generation)
 
-        # draw the snake
-        i = 0
-
-        for agent in self.remaining_agents:
+        for agent in remaining_agents:
             self.agent_step(agent)
 
             end = agent.body.draw(self.screen, self.go_through_boundary)
 
             if (end):
                 agent.dead = True
-                self.remaining_agents.remove(agent)
+                remaining_agents.remove(agent)
+                print('in_game_iteration:', len(remaining_agents))
                 print("An agent has died!")
-                if len(self.remaining_agents) == 0:
+                if len(remaining_agents) == 0:
+                    self.spawn_food()
                     break
 
             # check here if the snake ate the food
@@ -132,14 +158,6 @@ class GeneticAgentPlayer(Player):
                 if agent.score > self.high_score:
                     self.high_score += 1
                 print("A snake ate a food!")
-            i += 1
-
-        if self.steps == 200 or len(self.remaining_agents) == 0:
-            self.evolve_agents()
-
-            self.steps = 0
-            self.generation_num += 1
-            print("On generation {}".format(self.generation_num))
 
         pygame.display.flip()
 
@@ -151,12 +169,7 @@ class GeneticAgentPlayer(Player):
         return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
     def agent_step(self, agent):
-        #input_data = self.get_input_data(agent)
-
         agent.set_fitness(self.food_stack[0])
-
-        # NN will take 8 inputs and reproduce 4 outputs
-        #movement = agent.brain.get_movement(input_data)
 
         predictions = []
         for action in range(-1, 2):

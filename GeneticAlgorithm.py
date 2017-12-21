@@ -89,3 +89,11 @@ class GeneticAlgorithm():
                 #evolved.append(GANeuralNetwork(network.dimensions))
 
         return evolved
+
+    def load_model(self):
+        return GANeuralNetwork((5, 25, 1), load_model=True)
+
+    def save_best_agent(self, fitness_agents):
+        # rank by fitness
+        networks = self.ranked_networks(fitness_agents)
+        networks[0].save_model()
