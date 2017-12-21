@@ -18,6 +18,7 @@ class RLAgentPlayer(Player):
         self.go_through_boundary = True
         # total number of games required to train
         self.idle_frames = 0
+        self.total_steps = 0
         # try to load the numpy data, if not possible then set the training_data to an empty list
         try:
             # loaded training_data needs to be converted into a list
@@ -103,12 +104,24 @@ class RLAgentPlayer(Player):
         return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
     def gather_training_data(self):
+        self.wrong_turn = 0
+        self.wrong_direction = 0
+        self.right_direction = 0
+
         for _ in tqdm(range(TOTAL_TRAINING_GAMES)):
             self.one_game_iteration()
 
         print("Training data saved to disk...")
         # save the numpy data
         np.save("./rl-learning-data/rl-data.npy", self.training_data)
+
+        average_steps = self.total_steps / TOTAL_TRAINING_GAMES
+
+        print("Total Number of right directions: {}".format(self.right_direction))
+        print("Total Number of wrong directions: {}".format(self.wrong_direction))
+        print("Total Number of wrong turns: {}".format(self.wrong_turn))
+        print("Average frames rendered per game: {}".format(average_steps))
+
 
     def train_agent(self):
         print("Begining to train with {} data".format(len(self.training_data)))
@@ -122,10 +135,12 @@ class RLAgentPlayer(Player):
         end = False
         # the game is played until it is ended, so till the snake either hits the wall or collides with itself
         while not end:
+            self.total_steps += 1
             end, curr_nn_data, current_action = self.render_training_frame()
             prev_nn_data.append(current_action)
             prev_nn_data = np.array(prev_nn_data)
             if end:
+                self.wrong_turn += 1
                 self.training_data.append([prev_nn_data, -1])
                 # when game ends we reconstruct the body of the snake
                 self.agent.create_new_body()
@@ -134,8 +149,10 @@ class RLAgentPlayer(Player):
             else:
                 food_distance = self.agent.body.distance_from_food(self.food_stack[0])
                 if self.agent.body.score > score or food_distance < prev_food_distance:
+                    self.right_direction += 1
                     self.training_data.append([prev_nn_data, 1])
                 else:
+                    self.wrong_direction += 1
                     self.training_data.append([prev_nn_data, 0])
                 prev_food_distance = food_distance
                 prev_nn_data = curr_nn_data
@@ -206,6 +223,53 @@ class RLAgentPlayer(Player):
         action -= 1
 
         self.map_keys(action)
+
+    def test_agent(self, dataset_games):
+        game_iterations = 100
+        total_score = 0
+        high_score = 0
+
+        max_step = 1000
+
+        for _ in tqdm(range(game_iterations)):
+            step = 0
+            while True:
+                step += 1
+                score = self.agent.body.score
+
+                for food in self.food_stack:
+                    food.draw(self.screen)
+
+                self.use_brain_to_move()
+
+                end = self.agent.body.draw(self.screen, self.go_through_boundary)
+
+                # when the snake dies and the game ends
+                if end or step == max_step:
+                    if score > high_score:
+                        high_score = score
+
+                    total_score += score
+                    # break the loop when the game ends
+                    self.agent.create_new_body()
+                    break
+
+                # check here if the snake ate the food
+                if self.consumption_check():
+                    self.idle_frames = 0
+                    self.spawn_food()
+                    # finally we grow the snake as well by adding a new segment to the snake's body
+                    self.agent.body.grow()
+
+        average_score = total_score / game_iterations
+
+        data_prints = ["Neural Network played {}\n".format(dataset_games), "Highest Score in {} games: {}\n".format(game_iterations, high_score), "Average Score in {} games: {}\n".format(game_iterations, average_score)]
+
+        with open("test-result.txt", "a") as myfile:
+            for prints in data_prints:
+                myfile.write(prints)
+                print(prints)
+
 
     def game_loop(self):
         game_iterations = 5

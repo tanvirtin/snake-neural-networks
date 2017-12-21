@@ -1,11 +1,14 @@
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Activation
+from keras.layers.advanced_activations import LeakyReLU
 import numpy as np
 
 class KerasNeuralNetwork(object):
     def __init__(self, dimensions):
         self.model = Sequential()
         self.model.add(Dense(dimensions[1], activation = 'relu', input_dim = dimensions[0]))
+        #self.model.add(LeakyReLU(alpha=.001))
+        #self.model.add(Dense(35, activation = "relu", input_dim = dimensions[1]))
         self.model.add(Dense(dimensions[-1], activation = 'sigmoid'))
         self.model.compile(optimizer = 'rmsprop', loss = 'mse')
 

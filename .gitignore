@@ -1,2 +1,5 @@
 __pycache__
 datasets
+models_per_datasets/
+rl-learning-data/
+test-result.txt
