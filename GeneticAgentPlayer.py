@@ -97,23 +97,37 @@ class GeneticAgentPlayer(Player):
     def game_loop(self, num_iterations = 100):
         # create agent from saved model
         networks = [self.ga.load_model()]
+        high_score = 0
+        sum_score = 0
         for iteration in range(1, num_iterations+1):
             agents = self.build_agents(networks)
             remaining_agents = agents[:]
 
-            print('pre game_loop:',len(remaining_agents))
-            while len(remaining_agents) != 0:
-                self.game_iteration(remaining_agents, iteration)
-                print('game_loop:',len(remaining_agents))
+            best_score, high_score = self.evolve_loop(remaining_agents, iteration, high_score, num_steps=1000)
+            sum_score += best_score
+
             print("On game {}".format(iteration))
 
-    def train_agent(self, num_iterations = 100):
+        average_score = sum_score / num_iterations
+        data_prints = [
+            "Neural Network played {}\n".format(num_iterations),
+            "Highest Score in {} games: {}\n".format(num_iterations, high_score),
+            "Average Score in {} games: {}\n".format(num_iterations, average_score)
+         ]
+
+        with open("test-result.txt", "a") as myfile:
+            for prints in data_prints:
+                myfile.write(prints)
+                print(prints)
+
+    def train_agent(self, num_iterations = 10):
         # build initial agents
         agents = self.build_agents()
+        high_score = 0
         for iteration in range(1, num_iterations+1):
             remaining_agents = agents[:]
 
-            self.evolve_loop(remaining_agents, iteration)
+            best_score, high_score = self.evolve_loop(remaining_agents, iteration, high_score)
 
             # evolve agents after loop
             agents = self.evolve_agents(agents)
@@ -122,18 +136,22 @@ class GeneticAgentPlayer(Player):
         print('Saving best agent')
         self.save_best_agent(agents)
 
-    def evolve_loop(self, remaining_agents, current_generation, num_steps = 200):
+    def evolve_loop(self, remaining_agents, current_generation, high_score, num_steps = 200):
+        best_score = 0
         for steps in range(num_steps):
-            self.game_iteration(remaining_agents, current_generation)
+            best_score = self.game_iteration(remaining_agents, current_generation, best_score, high_score)
+            if best_score > high_score:
+                high_score = best_score
             if len(remaining_agents) == 0:
                 break
+        return best_score, high_score
 
-    def game_iteration(self, remaining_agents, current_generation):
+    def game_iteration(self, remaining_agents, current_generation, best_score, high_score):
         pygame.event.pump()
 
         self.screen.fill(self.background_color)
 
-        self.display_info(self.high_score, current_generation)
+        self.display_info(high_score, current_generation)
 
         for agent in remaining_agents:
             self.agent_step(agent)
@@ -143,7 +161,6 @@ class GeneticAgentPlayer(Player):
             if (end):
                 agent.dead = True
                 remaining_agents.remove(agent)
-                print('in_game_iteration:', len(remaining_agents))
                 print("An agent has died!")
                 if len(remaining_agents) == 0:
                     self.spawn_food()
@@ -155,11 +172,12 @@ class GeneticAgentPlayer(Player):
                 agent.body.grow()
                 # agent gets a point if he can eat the food
                 agent.score += 1
-                if agent.score > self.high_score:
-                    self.high_score += 1
+                if agent.score > best_score:
+                    best_score = agent.score
                 print("A snake ate a food!")
 
         pygame.display.flip()
+        return best_score
 
     def get_input_data(self, agent):
         # all the prediction of the next frame's collision movements
