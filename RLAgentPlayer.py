@@ -11,18 +11,18 @@ from tqdm import tqdm
 import time
 
 class RLAgentPlayer(Player):
-    def __init__(self, screen, speed):
+    def __init__(self, screen, speed, use_keras = True):
         super().__init__(screen)
         # takes in x, y of the snake and the speed of the snake
-        self.agent = RLAgent(speed)
+        self.agent = RLAgent(speed, use_keras)
         self.go_through_boundary = True
         # total number of games required to train
         self.idle_frames = 0
         # try to load the numpy data, if not possible then set the training_data to an empty list
         try:
-            print("Training data loaded from disk...")
             # loaded training_data needs to be converted into a list
             self.training_data = np.load("./rl-learning-data/rl-data.npy").tolist()
+            print("Training data loaded from disk...")
         except:
             print("Training data couldn't be loaded from disk...")
             self.training_data = []
@@ -120,6 +120,7 @@ class RLAgentPlayer(Player):
         prev_nn_data = self.get_input_data()
         # end dictates if the game has finished or not, initially it will be false
         end = False
+        # the game is played until it is ended, so till the snake either hits the wall or collides with itself
         while not end:
             end, curr_nn_data, current_action = self.render_training_frame()
             prev_nn_data.append(current_action)
@@ -190,6 +191,8 @@ class RLAgentPlayer(Player):
         prev_nn_data = self.get_input_data()
 
         predictions = []
+        # all three possible directions are generated and for all possible direction values given those inputs
+        # we ask the neural network which direction to step to for positive effect
         for action in range(-1, 2):
             nn_data = self.get_input_data()
             nn_data.append(action)
@@ -197,12 +200,14 @@ class RLAgentPlayer(Player):
             # depending on previous observation what move should i generate
             predictions.append(self.agent.predict(nn_data))
 
-        action = np.argmax(np.array(predictions)) - 1
+        action = np.argmax(np.array(predictions))
+
+        # to map the range value
+        action -= 1
 
         self.map_keys(action)
 
-
-    def game_loop(self, key_input = None):
+    def game_loop(self):
         game_iterations = 5
         high_score = 0
 

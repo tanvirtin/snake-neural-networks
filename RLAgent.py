@@ -6,13 +6,13 @@ from RLNeuralNetworkKeras import KerasNeuralNetwork
 from tqdm import tqdm
 
 class RLAgent(object):
-    def __init__(self, speed, own_implementation = False):
+    def __init__(self, speed, use_keras = True):
         self.speed = speed
         self.body = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
         for _ in range(3):
             self.body.grow()
 
-        if own_implementation:
+        if not use_keras:
             self.brain = self.__create_brain((5, 200, 200, 1), 1e-2)
         else:
             self.brain = self.__create_brain_keras((5, 75, 1))

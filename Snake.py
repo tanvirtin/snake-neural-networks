@@ -1,7 +1,6 @@
 from SnakeSegment import SnakeSegment
 import pygame
 from collision_checker import *
-import copy
 import numpy as np
 from util import *
 
@@ -51,23 +50,25 @@ class Snake(SnakeSegment):
 
         return snake
 
-    def copy(self):
-        new_snake = Snake(WINDOW_SIZE[0]/ 2, WINDOW_SIZE[0]/ 2, self.speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
-        for j in range(2):
-            new_snake.grow()
-        return new_snake
-
     def self_collision_prediction_helper(self, direction):
-        # a deep copy of self needs to be made to prevent pointer to self and changing self's attributes
-        #snake_clone = self.copy()
-        snake_clone = copy.deepcopy(self)
-        # the direciton is changed
-        snake_clone.change_direction(direction)
-        # new x and y coordinate of the snake is obtained
-        snake_clone = self.move_snake_in_its_direction(snake_clone)
+        # have a reference of the old direction
+        old_direction = self.current_direction
+        old_x = self.get_x()
+        old_y = self.get_y()
 
-        pred_1 = self.self_collision_check(snake_clone)
-        pred_2 = self.boundary_collision(snake_clone)
+        # then we move the snake in the new direciton and then move it back to where it was
+
+        # the direciton is changed
+        self.change_direction(direction)
+        # new x and y coordinate of the snake is obtained
+        self = self.move_snake_in_its_direction(self)
+
+        pred_1 = self.self_collision_check(self)
+        pred_2 = self.boundary_collision(self)
+
+        self.current_direction = old_direction
+        self.coordinates[0] = old_x
+        self.coordinates[1] = old_y
 
         if pred_1 or pred_2:
             return 1

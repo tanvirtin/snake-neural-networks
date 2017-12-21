@@ -10,8 +10,6 @@ from GAAgent import GAAgent
 from pygame.locals import *
 import math
 
-from TFLearnNN import TFLearnNN
-
 class GeneticAgentPlayer(Player):
     def __init__(self, screen, speed):
         super().__init__(screen)
@@ -19,9 +17,9 @@ class GeneticAgentPlayer(Player):
         self.ga = GeneticAlgorithm()
         self.speed = speed
         self.steps = 0
+        self.high_score = 0
         self.go_through_boundary = False
         self.generation_num = 1
-
         self.build_agents()
 
     def build_agents(self, brains = None):
@@ -49,14 +47,15 @@ class GeneticAgentPlayer(Player):
         else:
             return False
 
-    def display_info(self):
+
+    def display_info(self, high_score):
         pygame.font.init()
 
         default_font = pygame.font.get_default_font()
         font_renderer = pygame.font.Font(default_font, 10)
 
         # To create a surface containing `Some Text`
-        label = font_renderer.render("Generation - {}".format(self.generation_num), 1, (0,0,0)) # RGB Color
+        label = font_renderer.render("Generation - {}, High score: {}".format(self.generation_num, high_score), 1, (0,0,0)) # RGB Color
         self.screen.blit(label, (0,0))
 
         # draw the food
@@ -96,9 +95,7 @@ class GeneticAgentPlayer(Player):
             elif pred == 1:
                 agent.body.change_direction("left")
 
-
-
-    def game_loop(self, input_key = None):
+    def game_loop(self):
         while True:
             self.game_iteration()
 
@@ -109,7 +106,7 @@ class GeneticAgentPlayer(Player):
 
         self.screen.fill(self.background_color)
 
-        self.display_info()
+        self.display_info(self.high_score)
 
         # draw the snake
         i = 0
@@ -132,6 +129,8 @@ class GeneticAgentPlayer(Player):
                 agent.body.grow()
                 # agent gets a point if he can eat the food
                 agent.score += 1
+                if agent.score > self.high_score:
+                    self.high_score += 1
                 print("A snake ate a food!")
             i += 1
 

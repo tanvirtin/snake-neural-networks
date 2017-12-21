@@ -1,18 +1,15 @@
-from NeuralNetwork import NeuralNetwork
-from TFNN import TFNN
-from TFLearnNN import TFLearnNN
+from GANeuralNetwork import GANeuralNetwork
 import random
 import numpy as np
 
 class GeneticAlgorithm():
-    def __init__(self, pop_size=20, evolve_size=5, rand_select=0.2, mutate_chance=0.8):
+    def __init__(self, pop_size=10, evolve_size=5, mutate_chance=0.8):
         self.pop_size = pop_size
         self.evolve_size = evolve_size
-        self.rand_select = rand_select
         self.mutate_chance = mutate_chance
 
     def init_population(self):
-        return [TFLearnNN((5, 25, 1)) for _ in range(self.pop_size)]
+        return [GANeuralNetwork((5, 25, 1)) for _ in range(self.pop_size)]
         #return [NeuralNetwork((8, 10, 4)) for _ in range(self.pop_size)]
         #return [TFNN((8, 10, 4)) for _ in range(self.pop_size)]
 
@@ -40,7 +37,7 @@ class GeneticAlgorithm():
             weights.append([n_weights, n_bias])
 
         print('breeding')
-        new_network = TFLearnNN(a.dimensions, a.weights())
+        new_network = GANeuralNetwork(a.dimensions, a.weights())
         # print('a_weights', a.weights())
         # print('b_weights', b.weights())
         # print('new_weights', weights)
@@ -59,7 +56,7 @@ class GeneticAlgorithm():
                     if random.random() < self.mutate_chance:
                         elems[i][j][k] *= self.mutation_factor()
 
-        new_network = TFLearnNN(network.dimensions, elems)
+        new_network = GANeuralNetwork(network.dimensions, elems)
         return new_network
 
     def evolve_population(self, fitness_agents):
@@ -89,6 +86,6 @@ class GeneticAlgorithm():
         for i, network in enumerate(evolved[self.evolve_size:]):
             if random.random() < self.mutate_chance:
                 evolved[i+self.evolve_size] = self.mutate(network)
-                #evolved.append(TFLearnNN(network.dimensions))
+                #evolved.append(GANeuralNetwork(network.dimensions))
 
         return evolved

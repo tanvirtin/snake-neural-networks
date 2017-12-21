@@ -9,8 +9,8 @@ class NeuralNetwork(object):
 	# initialise the neural network
 	def __init__(self, dimensions, learningRate):
 		try:
-			print("The network weights have been loaded from disk...")
 			self.layers = np.load("./nn-data/nn-weights.npy")
+			print("The network weights have been loaded from disk...")
 		except:
 			print("The network weights couldn't be loaded from disk...")
 			# # this array will contain all the layers of the neural network

@@ -8,7 +8,7 @@ from util import *
 from SinglePlayer import SinglePlayer
 
 class SnakeGame(object):
-    def __init__(self, reinforcement_learning = False):
+    def __init__(self, reinforcement_learning = False, use_keras = True):
         self.screen = pygame.display.set_mode(WINDOW_SIZE, pygame.HWSURFACE)
         self.snakes_speed = SPEED
         self.reinforcement_learning = reinforcement_learning
@@ -16,10 +16,10 @@ class SnakeGame(object):
         if not self.reinforcement_learning:
             self.player = GeneticAgentPlayer(self.screen, self.snakes_speed)
         else:
-            self.player = RLAgentPlayer(self.screen, self.snakes_speed)
+            self.player = RLAgentPlayer(self.screen, self.snakes_speed, use_keras)
 
-    def game_loop(self, key_input = None):
-        return self.player.game_loop(key_input)
+    def game_loop(self):
+        return self.player.game_loop()
 
     def gather_data(self):
         if self.reinforcement_learning:

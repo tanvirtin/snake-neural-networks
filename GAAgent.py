@@ -8,7 +8,7 @@ ANGLE_WEIGHT = 5000
 DISTANCE_WEIGHT = 50
 
 class GAAgent(object):
-    def __init__(self, speed, brain, size=2):
+    def __init__(self, speed, brain, size=INIT_SNAKE_LENGTH):
         self.body = Snake(WINDOW_SIZE[0]/ 2, WINDOW_SIZE[0]/ 2, speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
         self.brain = brain
         self.dead = False
