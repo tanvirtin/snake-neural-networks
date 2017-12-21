@@ -3,9 +3,7 @@ from Snake import Snake
 import pygame
 import random
 from util import *
-import cv2
 from collision_checker import *
-import sys
 import numpy as np
 import math
 
@@ -22,15 +20,6 @@ class SinglePlayer(Player):
             return True
         else:
             return False
-
-    def get_game_pixels(self):
-        # get the game pixel
-        pixels = pygame.surfarray.array3d(pygame.display.get_surface())
-        # # convert pixel into greyscale image with only 1 channel
-        # cv2 is far more superior then any other library in image manipulation
-        pixels = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY) / 255
-
-        return pixels
 
     def map_keys(self, pred):
         if self.snake.current_direction == "right":

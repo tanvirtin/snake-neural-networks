@@ -1,6 +1,5 @@
 from SnakeGame import SnakeGame
 import time
-import argparse
 
 def main():
     while True:
