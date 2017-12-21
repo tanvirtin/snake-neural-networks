@@ -4,7 +4,7 @@ from keras.layers.advanced_activations import LeakyReLU
 import numpy as np
 
 class KerasNeuralNetwork(object):
-    def __init__(self, dimensions):
+    def __init__(self, dimensions, pre_trained = True):
         self.model = Sequential()
         self.model.add(Dense(dimensions[1], activation = 'relu', input_dim = dimensions[0]))
         #self.model.add(LeakyReLU(alpha=.001))
@@ -12,13 +12,25 @@ class KerasNeuralNetwork(object):
         self.model.add(Dense(dimensions[-1], activation = 'sigmoid'))
         self.model.compile(optimizer = 'rmsprop', loss = 'mse')
 
-        try:
-            self.loaded_model = open("./keras-nn-data/rl-model.json", "r")
-            if self.loaded_model:
-                self.model.load_weights("./keras-nn-data/rl-model.h5")
-                print("The network weights have been loaded from disk...")
-        except:
-            pass
+        if not pre_trained:
+            try:
+                self.loaded_model = open("./keras-nn-data/rl-model.json", "r")
+                if self.loaded_model:
+                    self.model.load_weights("./keras-nn-data/rl-model.h5")
+                    print("The network weights have been loaded from disk...")
+            except:
+                pass
+
+        # if pre_trained is mentioned
+        if pre_trained:
+            try:
+                self.loaded_model = open("./keras-nn-data/best-rl-model.json", "r")
+                if self.loaded_model:
+                    self.model.load_weights("./keras-nn-data/best-rl-model.h5")
+                    print("The best network has been loaded from disk...")
+            except:
+                print("Untrained Neural Network is being used...")
+                pass
 
 
     def query(self, input_data):

@@ -6,7 +6,7 @@ from RLNeuralNetworkKeras import KerasNeuralNetwork
 from tqdm import tqdm
 
 class RLAgent(object):
-    def __init__(self, speed, use_keras = True):
+    def __init__(self, speed, use_keras = True, pre_trained = True):
         self.speed = speed
         self.body = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
         for _ in range(3):
@@ -15,7 +15,7 @@ class RLAgent(object):
         if not use_keras:
             self.brain = self.__create_brain((5, 200, 200, 1), 1e-2)
         else:
-            self.brain = self.__create_brain_keras((5, 75, 1))
+            self.brain = self.__create_brain_keras((5, 75, 1), pre_trained)
 
     # creates a new body when the snake dies
     def create_new_body(self):
@@ -23,8 +23,8 @@ class RLAgent(object):
         for _ in range(3):
             self.body.grow()
 
-    def __create_brain_keras(self, dimensions):
-        return KerasNeuralNetwork(dimensions)
+    def __create_brain_keras(self, dimensions, pre_trained):
+        return KerasNeuralNetwork(dimensions, pre_trained)
 
     def __create_brain(self, dimensions, learning_rate):
         return NeuralNetwork(dimensions, learning_rate)

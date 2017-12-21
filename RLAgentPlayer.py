@@ -11,10 +11,11 @@ from tqdm import tqdm
 import time
 
 class RLAgentPlayer(Player):
-    def __init__(self, screen, speed, use_keras = True):
+    def __init__(self, screen, speed, use_keras = True, pre_trained = True, total_training_games = TOTAL_TRAINING_GAMES):
         super().__init__(screen)
+        self.total_training_games = total_training_games
         # takes in x, y of the snake and the speed of the snake
-        self.agent = RLAgent(speed, use_keras)
+        self.agent = RLAgent(speed, use_keras, pre_trained)
         self.go_through_boundary = True
         # total number of games required to train
         self.idle_frames = 0
@@ -108,14 +109,14 @@ class RLAgentPlayer(Player):
         self.wrong_direction = 0
         self.right_direction = 0
 
-        for _ in tqdm(range(TOTAL_TRAINING_GAMES)):
+        for _ in tqdm(range(self.total_training_games)):
             self.one_game_iteration()
 
         print("Training data saved to disk...")
         # save the numpy data
         np.save("./rl-learning-data/rl-data.npy", self.training_data)
 
-        average_steps = self.total_steps / TOTAL_TRAINING_GAMES
+        average_steps = self.total_steps / self.total_training_games
 
         print("Total Number of right directions: {}".format(self.right_direction))
         print("Total Number of wrong directions: {}".format(self.wrong_direction))
