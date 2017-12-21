@@ -21,11 +21,13 @@ def main():
         print("Snake is using brute forced reinforcement algorithm using our own implementation of MLP!")
         game = SnakeGame(True, False)
 
-    game.gather_data()
+    #game.gather_data()
 
     game.train_agent()
 
     game.game_loop()
+
+    #game.test_agent(100)
 
 if __name__ == "__main__":
     main()

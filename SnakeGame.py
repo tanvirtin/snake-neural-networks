@@ -27,3 +27,7 @@ class SnakeGame(object):
 
     def train_agent(self):
         self.player.train_agent()
+
+    def test_agent(self, dataset_games = "Some number of games"):
+        if self.reinforcement_learning:
+            self.player.test_agent(dataset_games)
