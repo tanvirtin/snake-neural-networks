@@ -11,9 +11,9 @@ from tqdm import tqdm
 import time
 
 class RLAgentPlayer(Player):
-    def __init__(self, screen, speed, use_keras = True, pre_trained = True, total_training_games = TOTAL_TRAINING_GAMES):
+    def __init__(self, screen, speed, use_keras = True, pre_trained = True):
         super().__init__(screen)
-        self.total_training_games = total_training_games
+        self.total_training_games = TOTAL_TRAINING_GAMES
         # takes in x, y of the snake and the speed of the snake
         self.agent = RLAgent(speed, use_keras, pre_trained)
         self.go_through_boundary = True
@@ -109,7 +109,8 @@ class RLAgentPlayer(Player):
         angle = self.get_angle()
         return [coll_pred[0], coll_pred[1], coll_pred[2], angle]
 
-    def gather_training_data(self):
+    def gather_training_data(self, total_training_games = TOTAL_TRAINING_GAMES):
+        self.total_training_games = total_training_games
         self.wrong_turn = 0
         self.wrong_direction = 0
         self.right_direction = 0

@@ -105,10 +105,8 @@ class GeneticAgentPlayer(Player):
             agents = self.build_agents(networks)
             remaining_agents = agents[:]
 
-            best_score, high_score = self.evolve_loop(remaining_agents, iteration, high_score, num_steps=1000)
+            best_score, high_score = self.evolve_loop(remaining_agents, iteration, high_score, num_steps=1000, test_mode = True)
             sum_score += best_score
-
-            print("On game {}".format(iteration))
 
         average_score = sum_score / num_iterations
         data_prints = [
@@ -145,27 +143,26 @@ class GeneticAgentPlayer(Player):
 
             # evolve agents after loop
             agents = self.evolve_agents(agents)
-            print("On generation {}".format(iteration))
         # save the model of the best agent
         print('Saving best agent')
         self.save_best_agent(agents)
 
-    def evolve_loop(self, remaining_agents, current_generation, high_score, num_steps = 200, add_delay = False):
+    def evolve_loop(self, remaining_agents, current_generation, high_score, num_steps = 200, add_delay = False, test_mode = False):
         best_score = 0
         for steps in range(num_steps):
-            best_score = self.game_iteration(remaining_agents, current_generation, best_score, high_score, add_delay)
+            best_score = self.game_iteration(remaining_agents, current_generation, best_score, high_score, add_delay, test_mode)
             if best_score > high_score:
                 high_score = best_score
             if len(remaining_agents) == 0:
                 break
         return best_score, high_score
 
-    def game_iteration(self, remaining_agents, current_generation, best_score, high_score, add_delay):
+    def game_iteration(self, remaining_agents, current_generation, best_score, high_score, add_delay, test_mode = False):
         pygame.event.pump()
 
-        self.screen.fill(self.background_color)
-
-        self.display_info(high_score, current_generation)
+        if not test_mode:
+            self.screen.fill(self.background_color)
+            self.display_info(high_score, current_generation)
 
         for agent in remaining_agents:
             self.agent_step(agent)
@@ -196,7 +193,9 @@ class GeneticAgentPlayer(Player):
             if add_delay:
                 time.sleep(0.05)
 
-        pygame.display.flip()
+        if not test_mode:
+            pygame.display.flip()
+
         return best_score
 
     def get_input_data(self, agent):

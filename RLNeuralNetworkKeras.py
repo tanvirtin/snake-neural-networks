@@ -1,16 +1,20 @@
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Activation
 from keras.layers.advanced_activations import LeakyReLU
+from keras import optimizers
+from keras.callbacks import TensorBoard
 import numpy as np
 
 class KerasNeuralNetwork(object):
-    def __init__(self, dimensions, pre_trained = True):
+    def __init__(self, dimensions, pre_trained = True, learning_rate = 1e-2):
         self.model = Sequential()
         self.model.add(Dense(dimensions[1], activation = 'relu', input_dim = dimensions[0]))
         #self.model.add(LeakyReLU(alpha=.001))
         #self.model.add(Dense(35, activation = "relu", input_dim = dimensions[1]))
         self.model.add(Dense(dimensions[-1], activation = 'sigmoid'))
-        self.model.compile(optimizer = 'rmsprop', loss = 'mse')
+        self.rms_props = optimizers.RMSprop(lr = learning_rate)
+        self.model.compile(optimizer = self.rms_props, loss = 'mse')
+        self.tensorboard = TensorBoard(log_dir = "./logs", histogram_freq = 0, write_graph = True, write_images = False)
 
         # if not pre_trained:
         #     try:
@@ -40,7 +44,7 @@ class KerasNeuralNetwork(object):
     def fit(self, training_data, num_batches, num_epochs):
         inputs = np.array([i[0] for i in training_data]).reshape(-1, 5)
         outputs = np.array([i[1] for i in training_data]).reshape(-1, 1)
-        self.model.fit(inputs, outputs, epochs = num_epochs, batch_size = num_batches)
+        self.model.fit(inputs, outputs, epochs = num_epochs, batch_size = num_batches, callbacks = [self.tensorboard])
         model_json = self.model.to_json()
 
         # with open("./keras-nn-data/rl-model.json", "w") as json_file:

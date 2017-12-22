@@ -11,11 +11,11 @@ class RLAgent(object):
         self.body = Snake(WINDOW_SIZE[0] / 2, WINDOW_SIZE[0] / 2, self.speed, WINDOW_SIZE[0], WINDOW_SIZE[0])
         for _ in range(3):
             self.body.grow()
-
+        self.learning_rate = 1e-2
         if not use_keras:
-            self.brain = self.__create_brain((5, 200, 200, 1), 1e-2)
+            self.brain = self.__create_brain((5, 200, 200, 1), self.learning_rate)
         else:
-            self.brain = self.__create_brain_keras((5, 75, 1), pre_trained)
+            self.brain = self.__create_brain_keras((5, 75, 1), pre_trained, learning_rate = self.learning_rate)
 
     # creates a new body when the snake dies
     def create_new_body(self):
@@ -23,8 +23,8 @@ class RLAgent(object):
         for _ in range(3):
             self.body.grow()
 
-    def __create_brain_keras(self, dimensions, pre_trained):
-        return KerasNeuralNetwork(dimensions, pre_trained)
+    def __create_brain_keras(self, dimensions, pre_trained, learning_rate):
+        return KerasNeuralNetwork(dimensions, pre_trained, learning_rate)
 
     def __create_brain(self, dimensions, learning_rate):
         return NeuralNetwork(dimensions, learning_rate)

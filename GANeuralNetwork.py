@@ -1,6 +1,5 @@
 import numpy as np
 import os
-
 import keras
 from keras.models import Model
 from keras.layers import Dense
