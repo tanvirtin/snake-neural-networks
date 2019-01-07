@@ -140,4 +140,4 @@ License
 MIT
 
 
-**Hope this project was motivating for you!**
+**THanks for checking this out!**
