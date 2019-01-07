@@ -138,6 +138,3 @@ License
 ----
 
 MIT
-
-
-**THanks for checking this out!**
